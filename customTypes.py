@@ -1,10 +1,7 @@
 from __future__ import annotations
-from typing import TypeAlias, Literal, Optional
+from typing import TypeAlias, Literal
 from enum import Enum
-from constants import MUST_BRING_IN_GERMAN_COUSES, MUST_BRING_IN_FOREIGN_LANGUAGE_COUSES, MUST_BRING_IN_ART_COUSES, MUST_BRING_IN_POLITICAL_COUSES, MUST_BRING_IN_MATH_COURSES, MUST_BRING_IN_SCIENCE_COUSES, MUST_BRING_IN_SPORT_COUSES
 from functools import total_ordering
-
-UNKNOWN = -1
 
 class LogType(Enum):
     LOG = 0
@@ -23,45 +20,50 @@ class FifthPKType(Enum):
 
 Semester: TypeAlias = Literal[1, 2, 3, 4]
 
-Grade: TypeAlias = Optional[Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, -1]]
-
 @total_ordering
 class Points:
-    def __init__(self, value: int = 0, possibleIncrease: int = 0) -> None:
-        self.value = value
-        self.possibleIncrease = 0
-    def __add__(self, other: Points | Grade | int) -> Points:
+    def __init__(self, value: float = 0, possibleIncrease: float = 0) -> None:
+        self.value: float = value
+        self.possibleIncrease: float = possibleIncrease
+    def __add__(self, other: Points | int) -> Points:
         if isinstance(other, Points):
             return Points(self.value+other.value, self.possibleIncrease + other.possibleIncrease)
         else:
-            if other == None:
-                return self
-            elif other == -1:
+            if other == -1:
                 return Points(self.value, self.possibleIncrease+15)
             else:
                 return Points(self.value+other, self.possibleIncrease)
-    def __asFloat(self) -> float:
-        return self.value
+    def __mul__(self, other: float | int) -> Points:
+        return Points(self.value*other, self.possibleIncrease*other)
     def __eq__(self, other: float | int | Points | object) -> bool:
         if isinstance(other, Points):
-            return self.__asFloat() == other.__asFloat()
-        if isinstance(other, int):
-            return self.__asFloat() == other
-        return self.__eq__(other)
-    def __lt__(self, other: float | int | Points) -> bool:
+            return (self.value + self.possibleIncrease / 2) == (other.value + other.possibleIncrease / 2)
+        if isinstance(other, (int, float)):
+            return (self.value + self.possibleIncrease / 2) == float(other)
+        return NotImplemented
+    def __lt__(self, other: float | int | Points | object) -> bool:
         if isinstance(other, Points):
-            return self.__asFloat() < other.__asFloat()
-        if isinstance(other, int):
-            return self.__asFloat() < other
+            return (self.value + self.possibleIncrease / 2) < (other.value + other.possibleIncrease / 2)
+        if isinstance(other, (int, float)):
+            return (self.value + self.possibleIncrease / 2) < float(other)
         return NotImplemented
     def __str__(self) -> str:
         if self.possibleIncrease == 0:
             return f'{self.value}P'
         return f'{self.value}~{self.value+self.possibleIncrease}P'
 
+UNKNOWN = Points(0, 15)
+
+@total_ordering
 class CourseType(Enum):
     GK = 0
     LK = 1
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, CourseType):
+            return self.value == other.value
+        return NotImplemented
+    def __lt__(self, other: "CourseType") -> bool:
+        return self.value < other.value
 
 class FinalExamType(Enum):
     LK1 = 0
@@ -77,12 +79,3 @@ class SubjectCategory(Enum):
     MathScience = 3
     Physical = 4
     Other = 5
-
-class MustBringInCourses(Enum):
-    German = MUST_BRING_IN_GERMAN_COUSES
-    ForeignLanguage = MUST_BRING_IN_FOREIGN_LANGUAGE_COUSES
-    Art = MUST_BRING_IN_ART_COUSES
-    Political = MUST_BRING_IN_POLITICAL_COUSES
-    Maths = MUST_BRING_IN_MATH_COURSES
-    Science = MUST_BRING_IN_SCIENCE_COUSES
-    Sport = MUST_BRING_IN_SPORT_COUSES

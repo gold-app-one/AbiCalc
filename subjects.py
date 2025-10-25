@@ -1,5 +1,7 @@
 from customTypes import SubjectCategory
+from functools import total_ordering
 
+@total_ordering
 class Subject:
     idCounter: int = 0
     def __init__(self, name: str, category: SubjectCategory) -> None:
@@ -7,6 +9,14 @@ class Subject:
         self.__id = Subject.idCounter
         self.name = name
         self.category = category
+    def __eq__(self, other: "Subject | object") -> bool:
+        if isinstance(other, Subject):
+            return self.name == other.name
+        return self.__eq__(other)
+    def __lt__(self, other: "Subject") -> bool:
+        return self.name < other.name
+    def __str__(self) -> str:
+        return self.name
 
 # 1
 GERMAN = Subject('Deutsch', SubjectCategory.LangArt)

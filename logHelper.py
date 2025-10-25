@@ -10,7 +10,7 @@ logTypeIcons: dict[LogType, str] = {
 }
 
 def log(message: str, type: LogType) -> None:
-    if LOG_LEVEL >= type.value:
+    if LOG_LEVEL <= type.value:
         print(f'{logTypeIcons[type]}|{message}')
 
 def logExit(message: str) -> NoReturn:

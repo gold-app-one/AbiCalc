@@ -1,6 +1,9 @@
+from subjects import HISTORY, Subject
+from typing import Tuple
+from customTypes import SubjectCategory
+from enum import Enum
 
-
-LOG_LEVEL: int = 2
+LOG_LEVEL: int = 1
 
 FINAL_EXAM_FACTOR: int = 4
 LK_FACTOR: int = 2
@@ -11,6 +14,8 @@ MIN_LK_COURSES: int = MAX_LK_COURSES
 MIN_PASSED_LK: int = 6
 MAX_GK_COURSES: int = 32
 MIN_GK_COURSES: int = 24
+MIN_PE_COURSES: int = 4
+MAX_PE_COURSES: int = 6
 MIN_PASSED_GK: int = 20
 FINAL_EXAMS: int = 5
 MIN_FINAL_EXAMS: int = 2
@@ -29,11 +34,35 @@ OVERALL_MAX_GRADE_FINAL_EXAMS: int = BEST_GRADE * FINAL_EXAMS * FINAL_EXAM_FACTO
 OVERALL_MIN_GRADE: int = OVERALL_MIN_GRADE_FINAL_EXAMS + OVERALL_MIN_GRADE_GK + OVERALL_MIN_GRADE_LK
 OVERALL_MAX_GRADE: int = OVERALL_MAX_GRADE_FINAL_EXAMS + OVERALL_MAX_GRADE_GK + OVERALL_MAX_GRADE_LK
 
-MUST_BRING_IN_GERMAN_COUSES: int = 4
-MUST_BRING_IN_FOREIGN_LANGUAGE_COUSES: int = 4
-MUST_BRING_IN_ART_COUSES: int = 2
-MUST_BRING_IN_HISTORY_COUSES: int = 2
-MUST_BRING_IN_POLITICAL_COUSES: int = MUST_BRING_IN_HISTORY_COUSES + 2 | MUST_BRING_IN_HISTORY_COUSES + 4
+MUST_BRING_IN_GERMAN_COURSES: int = 4
+MUST_BRING_IN_FOREIGN_LANGUAGE_COURSES: int = 4
+MUST_BRING_IN_ART_COURSES: int = 2
+MUST_BRING_IN_HISTORY_COURSES: int = 2
+def MUST_BRING_POLITICS_OR_POLITICAL(fifth: Subject) -> Tuple[int, int]:
+  if fifth == HISTORY:
+    return (2, 4)
+  elif fifth.category == SubjectCategory.Political:
+    return (0, 0)
+  else:
+    return (0, 4)
 MUST_BRING_IN_MATH_COURSES: int = 4
-MUST_BRING_IN_SCIENCE_COUSES: int = 4 | 6
-MUST_BRING_IN_SPORT_COUSES: int = 0 | 4
+def MUST_BRING_IN_SCIENCE_COURSES(isBiology: bool) -> int:
+  if isBiology:
+    return 6
+  else:
+    return 4
+def MUST_BRING_IN_SPORT_COURSES(hasPEAsFinal: bool) -> int:
+  if hasPEAsFinal:
+    return 4
+  else:
+    return 0
+
+class MustBringInCourses(Enum):
+    German = MUST_BRING_IN_GERMAN_COURSES
+    ForeignLanguage = MUST_BRING_IN_FOREIGN_LANGUAGE_COURSES
+    Art = MUST_BRING_IN_ART_COURSES
+    History = 2
+    # Political = MUST_BRING_IN_POLITICAL_COURSES
+    Maths = MUST_BRING_IN_MATH_COURSES
+    Science = MUST_BRING_IN_SCIENCE_COURSES
+    Sport = MUST_BRING_IN_SPORT_COURSES
