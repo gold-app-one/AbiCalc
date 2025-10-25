@@ -50,6 +50,8 @@ class Points:
     def __str__(self) -> str:
         if self.possibleIncrease == 0:
             return f'{self.value}P'
+        if self.value == 0 and self.possibleIncrease == 15:
+            return '??P'
         return f'{self.value}~{self.value+self.possibleIncrease}P'
 
 UNKNOWN = Points(0, 15)
