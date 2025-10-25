@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Callable, Iterable, List, Tuple
 from constants import (FINAL_EXAM_FACTOR, GK_FACTOR, LK_FACTOR, MAX_GK_COURSES, MAX_LK_COURSES,
     MAX_PE_COURSES, MIN_GK_COURSES, MIN_LK_COURSES, MIN_PASSED_GK, MIN_PASSED_GRADE, MIN_PASSED_LK,
     MIN_PE_COURSES, MUST_BRING_IN_SCIENCE_COURSES, MUST_BRING_IN_SPORT_COURSES,
@@ -9,6 +9,7 @@ from logHelper import logExit, log
 from subjects import ARTS, BIOLOGY, CHEMISTRY, DS, ENGLISH, FRENCH, GEOGRAPHY, HISTORY, LATIN, MATHEMATICS, MUSIC, PHILOSOPHY, PHYSICAL_EDUCATION, PHYSICS, POLITICS, SPANISH, Subject, GERMAN
 import itertools
 import sys
+import heapq
 
 if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8') # type: ignore
@@ -123,100 +124,351 @@ class CreditedCombination:
             string += (f'({course.grade}-{course.subject}-Q{course.semester})')
         return string + '\n\n'
 
+
 class Calculator:
     def __init__(self, courses: List[Course], finals: FinalExams) -> None:
         self.__courses: List[Course] = courses
         self.__finals = finals
+        self.__lkSubjects: Tuple[Subject, Subject] = (self.__finals.LK1.subject, self.__finals.LK2.subject)
+        self.__examPoints: Points = self.__calculateExamPoints()
+        self.__coursePointCache: dict[Course, Points] = {
+            course: self.__calculateCoursePoints(course) for course in self.__courses
+        }
         self.__checkValidity()
+
     def getBestCombinations(self, amount: int = 5) -> None:
         def score_val(c: CreditedCombination) -> float:
             s = c.getScore()
             return s.value + s.possibleIncrease / 2
-        combinations = sorted(self.__getCreditedCombinations(),
-                            key=lambda c: (not c.passed(), -score_val(c)))
+
+        combinations = sorted(
+            self.__getCreditedCombinations(amount),
+            key=lambda c: (not c.passed(), -score_val(c))
+        )
         for comb in combinations[:amount]:
             print(comb)
+
     def __checkValidity(self) -> bool:
         return self.__enoughCoursesOfTypes()
-    def __getCreditedCombinations(self) -> List[CreditedCombination]:
+
+    def __scoreValue(self, points: Points) -> float:
+        return points.value + points.possibleIncrease / 2
+
+    def __calculateExamPoints(self) -> Points:
+        total = Points(0)
+        for exam in (self.__finals.LK1, self.__finals.LK2, self.__finals.written, self.__finals.orally, self.__finals.fifth):
+            total += exam.grade * FINAL_EXAM_FACTOR
+        return total
+
+    def __calculateCoursePoints(self, course: Course) -> Points:
+        factor = LK_FACTOR if course.subject in self.__lkSubjects else GK_FACTOR
+        return course.grade * factor
+
+    def __prepareCombinations(
+        self,
+        combinations: Iterable[tuple[tuple[Course, ...], Points]]
+    ) -> List[tuple[tuple[Course, ...], set[Course], Points]]:
+        prepared: List[tuple[tuple[Course, ...], set[Course], Points]] = []
+        for courses, points in combinations:
+            prepared.append((courses, set(courses), points))
+        return prepared
+
+    def __enumerateCombinations(
+        self,
+        courses: List[Course],
+        pick: int,
+        filter_fn: Callable[[tuple[Course, ...]], bool] | None = None,
+    ) -> List[tuple[tuple[Course, ...], Points]]:
+        if pick < 0:
+            return []
+        combinations: List[tuple[tuple[Course, ...], Points]] = []
+        for combination in itertools.combinations(courses, pick):
+            if filter_fn and not filter_fn(combination):
+                continue
+            total = Points(0)
+            for course in combination:
+                total += self.__coursePointCache[course]
+            combinations.append((combination, total))
+        combinations.sort(key=lambda item: self.__scoreValue(item[1]), reverse=True)
+        return combinations
+
+    def __getCreditedCombinations(self, limit: int) -> List[CreditedCombination]:
         M = MustBringInCourses
-        combinations: List[CreditedCombination] = []
         germanCourses: List[Course] = [course for course in self.__courses if course.subject == GERMAN]
-        foreignLangCourses: List[Course] = [course for course in self.__courses if course.subject in (ENGLISH, FRENCH, SPANISH, LATIN)]
+        foreignLangCourses: List[Course] = [
+            course for course in self.__courses if course.subject in (ENGLISH, FRENCH, SPANISH, LATIN)
+        ]
         artsCourses: List[Course] = [course for course in self.__courses if course.subject in (ARTS, MUSIC, DS)]
-        politicalCourses: List[Course] = [course for course in self.__courses if course.subject in (POLITICS, HISTORY, GEOGRAPHY, PHILOSOPHY)]
+        politicalCourses: List[Course] = [
+            course for course in self.__courses if course.subject in (POLITICS, HISTORY, GEOGRAPHY, PHILOSOPHY)
+        ]
         mathsCourses: List[Course] = [course for course in self.__courses if course.subject == MATHEMATICS]
         PECourses: List[Course] = [course for course in self.__courses if course.subject == PHYSICAL_EDUCATION]
         historyCourses: List[Course] = [course for course in self.__courses if course.subject == HISTORY]
         scienceCourses: List[Course] = [course for course in self.__courses if course.subject in (PHYSICS, CHEMISTRY, BIOLOGY)]
 
-        germanCombs = list(itertools.combinations(germanCourses, M.German.value))
-        foreignLangCombs = list(itertools.combinations(foreignLangCourses, M.ForeignLanguage.value))
-        artsCombs = list(itertools.combinations(artsCourses, M.Art.value))
-        historyCombs = list(itertools.combinations(historyCourses, M.History.value))
+        print("\n🔍 Starting optimized combination search...")
 
-        total_outer_loops = len(germanCombs) * len(foreignLangCombs) * len(artsCombs) * len(historyCombs)
-        print(f"\n🔍 Starting combination search...")
-        print(f"📊 Total outer iterations: {total_outer_loops:,}")
-        print(f"   German combinations: {len(germanCombs)}")
-        print(f"   Foreign language combinations: {len(foreignLangCombs)}")
-        print(f"   Arts combinations: {len(artsCombs)}")
-        print(f"   History combinations: {len(historyCombs)}")
+        germanCombs = self.__prepareCombinations(
+            self.__enumerateCombinations(germanCourses, M.German.value)
+        )
+        foreignLangCombs = self.__prepareCombinations(
+            self.__enumerateCombinations(foreignLangCourses, M.ForeignLanguage.value)
+        )
+        artsCombs = self.__prepareCombinations(
+            self.__enumerateCombinations(artsCourses, M.Art.value)
+        )
+        historyCombs = self.__prepareCombinations(
+            self.__enumerateCombinations(historyCourses, M.History.value)
+        )
+        mathsCombs = self.__prepareCombinations(
+            self.__enumerateCombinations(mathsCourses, M.Maths.value)
+        )
 
-        outer_iteration = 0
+        hasPEAsFinal = any(
+            final.subject == PHYSICAL_EDUCATION
+            for final in (
+                self.__finals.fifth,
+                self.__finals.orally,
+                self.__finals.written,
+                self.__finals.LK1,
+                self.__finals.LK2,
+            )
+        )
+        pe_required = MUST_BRING_IN_SPORT_COURSES(hasPEAsFinal)
+        PECombs = self.__prepareCombinations(
+            self.__enumerateCombinations(PECourses, pe_required)
+        )
+        scienceCombs = self.__prepareCombinations(self.__getScienceCourses(scienceCourses))
 
-        for germanComb in germanCombs:
-            for foreignLangComb in foreignLangCombs:
-                for artsComb in artsCombs:
-                    for historyComb in historyCombs:
-                        outer_iteration += 1
-                        if outer_iteration % 10 == 0 or outer_iteration == 1:
-                            progress = (outer_iteration / total_outer_loops) * 100
-                            print(f"🔄 Progress: {outer_iteration}/{total_outer_loops} ({progress:.1f}%) | Combinations found: {len(combinations):,}")
-                        for _any, amount in enumerate(MUST_BRING_POLITICS_OR_POLITICAL(self.__finals.fifth.subject)):
-                            combs: list[tuple[Course, ...]] = []
-                            if _any:
-                                combs = self.__getTwoSubjectsCourses([course for course in self.__courses if course not in historyComb])
+        political_requirements = MUST_BRING_POLITICS_OR_POLITICAL(self.__finals.fifth.subject)
+        political_fixed_cache: dict[int, List[tuple[tuple[Course, ...], set[Course], Points]]] = {}
+        for idx, amount in enumerate(political_requirements):
+            if idx == 0:
+                political_fixed_cache[amount] = self.__prepareCombinations(
+                    self.__enumerateCombinations(politicalCourses, amount)
+                )
+
+        best_heap: List[tuple[float, int, CreditedCombination]] = []
+        counter = itertools.count()
+        evaluated_combinations = 0
+
+        def record_combination(courses_tuple: tuple[Course, ...]) -> None:
+            nonlocal evaluated_combinations
+            if len(courses_tuple) != MIN_GK_COURSES + MIN_LK_COURSES:
+                log("Combination failed (couldn't get correct Amount)", LogType.LOG)
+                return
+            combination = CreditedCombination(creditedCourses=courses_tuple, finals=self.__finals)
+            evaluated_combinations += 1
+            score = combination.getScore()
+            score_value = self.__scoreValue(score)
+            entry = (score_value, next(counter), combination)
+            if len(best_heap) < limit:
+                heapq.heappush(best_heap, entry)
+            else:
+                if score_value > best_heap[0][0]:
+                    heapq.heapreplace(best_heap, entry)
+
+        for germanCoursesTuple, germanSet, germanPoints in germanCombs:
+            for foreignCoursesTuple, foreignSet, foreignPoints in foreignLangCombs:
+                if germanSet & foreignSet:
+                    continue
+                coursesAfterForeign = germanCoursesTuple + foreignCoursesTuple
+                setAfterForeign = germanSet | foreignSet
+                pointsAfterForeign = germanPoints + foreignPoints
+                for artsCoursesTuple, artsSet, artsPoints in artsCombs:
+                    if setAfterForeign & artsSet:
+                        continue
+                    coursesAfterArts = coursesAfterForeign + artsCoursesTuple
+                    setAfterArts = setAfterForeign | artsSet
+                    pointsAfterArts = pointsAfterForeign + artsPoints
+                    for historyCoursesTuple, historySet, historyPoints in historyCombs:
+                        if setAfterArts & historySet:
+                            continue
+                        coursesAfterHistory = coursesAfterArts + historyCoursesTuple
+                        setAfterHistory = setAfterArts | historySet
+                        pointsAfterHistory = pointsAfterArts + historyPoints
+                        for optionIndex, amount in enumerate(political_requirements):
+                            if optionIndex == 0:
+                                politicalCombs = political_fixed_cache.setdefault(
+                                    amount,
+                                    self.__prepareCombinations(
+                                        self.__enumerateCombinations(politicalCourses, amount)
+                                    ),
+                                )
                             else:
-                                combs = list(itertools.combinations(politicalCourses, amount))
-                            for politicalComb in combs:
-                                for mathsComb in list(itertools.combinations(mathsCourses, M.Maths.value)):
-                                    hasPEAsFinal: bool = any(final.subject == PHYSICAL_EDUCATION for final in (self.__finals.fifth, self.__finals.orally, self.__finals.written, self.__finals.LK1, self.__finals.LK2))
-                                    for PEComb in list(itertools.combinations(PECourses, MUST_BRING_IN_SPORT_COURSES(hasPEAsFinal))):
-                                        scienceCombs = self.__getScienceCourses(scienceCourses)
-                                        for scienceIdx, ScienceComb in enumerate(scienceCombs):
-                                            baseCourses: List[Course] = list(germanComb + foreignLangComb + artsComb + historyComb + politicalComb + mathsComb + PEComb + ScienceComb)
-                                            remainingAmount: int = self.__getRemainingCoursesAmount(baseCourses, (self.__finals.LK1.subject, self.__finals.LK2.subject))
-                                            remainingCourses: list[Course] = [course for course in self.__courses if course not in baseCourses]
-                                            extraCombs = self.__getPossibleExtraCoursesCombinations(remainingCourses, remainingAmount)
+                                remaining_courses_for_political = [
+                                    course for course in self.__courses if course not in historySet
+                                ]
+                                politicalCombs = self.__prepareCombinations(
+                                    self.__getTwoSubjectsCourses(remaining_courses_for_political)
+                                )
+                            for politicalCoursesTuple, politicalSet, politicalPoints in politicalCombs:
+                                if setAfterHistory & politicalSet:
+                                    continue
+                                coursesAfterPolitical = coursesAfterHistory + politicalCoursesTuple
+                                setAfterPolitical = setAfterHistory | politicalSet
+                                pointsAfterPolitical = pointsAfterHistory + politicalPoints
+                                for mathsCoursesTuple, mathsSet, mathsPoints in mathsCombs:
+                                    if setAfterPolitical & mathsSet:
+                                        continue
+                                    coursesAfterMaths = coursesAfterPolitical + mathsCoursesTuple
+                                    setAfterMaths = setAfterPolitical | mathsSet
+                                    pointsAfterMaths = pointsAfterPolitical + mathsPoints
+                                    for PECoursesTuple, PESet, PEPoints in PECombs:
+                                        if setAfterMaths & PESet:
+                                            continue
+                                        coursesAfterPE = coursesAfterMaths + PECoursesTuple
+                                        setAfterPE = setAfterMaths | PESet
+                                        pointsAfterPE = pointsAfterMaths + PEPoints
+                                        for scienceCoursesTuple, scienceSet, sciencePoints in scienceCombs:
+                                            if setAfterPE & scienceSet:
+                                                continue
+                                            coursesAfterScience = coursesAfterPE + scienceCoursesTuple
+                                            setAfterScience = setAfterPE | scienceSet
+                                            pointsAfterScience = pointsAfterPE + sciencePoints
+                                            remainingAmount = self.__getRemainingCoursesAmount(
+                                                list(coursesAfterScience),
+                                                self.__lkSubjects,
+                                            )
+                                            if remainingAmount < 0:
+                                                continue
+                                            remainingCourses = [
+                                                course for course in self.__courses if course not in setAfterScience
+                                            ]
+                                            remainingGKCourses = [
+                                                course for course in remainingCourses if course.subject not in self.__lkSubjects
+                                            ]
+                                            if remainingAmount == 0:
+                                                record_combination(coursesAfterScience)
+                                                continue
+                                            if len(remainingGKCourses) < remainingAmount:
+                                                continue
+                                            sortedRemaining = sorted(
+                                                remainingGKCourses,
+                                                key=lambda course: self.__scoreValue(self.__coursePointCache[course]),
+                                                reverse=True,
+                                            )
+                                            optimisticExtra = self.__sumTopCoursePoints(
+                                                sortedRemaining, remainingAmount
+                                            )
+                                            optimisticTotal = (
+                                                pointsAfterScience + optimisticExtra + self.__examPoints
+                                            )
+                                            threshold = best_heap[0][0] if len(best_heap) >= limit else float('-inf')
+                                            if self.__scoreValue(optimisticTotal) <= threshold:
+                                                continue
+                                            self.__searchExtraCourses(
+                                                sortedRemaining,
+                                                remainingAmount,
+                                                coursesAfterScience,
+                                                pointsAfterScience,
+                                                record_combination,
+                                                best_heap,
+                                                limit,
+                                            )
 
-                                            if scienceIdx == 0 and len(extraCombs) > 100:
-                                                print(f"   ⚠️ Inner loop: Processing {len(extraCombs):,} extra combinations (remaining: {len(remainingCourses)} courses, need: {remainingAmount})")
+        print(f"✅ Search complete! Combinations evaluated: {evaluated_combinations:,}\n")
+        sorted_best = sorted(
+            best_heap,
+            key=lambda entry: (not entry[2].passed(), -self.__scoreValue(entry[2].getScore()))
+        )
+        return [entry[2] for entry in sorted_best]
 
-                                            for extraComb in extraCombs:
-                                                courses = baseCourses + list(extraComb)
-                                                coursesCombination = tuple(courses)
-                                                if len(coursesCombination) != MIN_GK_COURSES + 8:
-                                                    log('Combination failed (couldn\'t get correct Amount)', LogType.LOG)
-                                                combination = CreditedCombination(creditedCourses=coursesCombination, finals=self.__finals)
-                                                combinations.append(combination)
+    def __sumTopCoursePoints(self, sortedCourses: List[Course], count: int) -> Points:
+        total = Points(0)
+        for course in sortedCourses[:count]:
+            total += self.__coursePointCache[course]
+        return total
 
-        print(f"\n✅ Search complete! Total combinations generated: {len(combinations):,}\n")
-        return combinations
+    def __searchExtraCourses(
+        self,
+        sortedCourses: List[Course],
+        needed: int,
+        baseCourses: tuple[Course, ...],
+        basePoints: Points,
+        record_fn: Callable[[tuple[Course, ...]], None],
+        best_heap: List[tuple[float, int, CreditedCombination]],
+        limit: int,
+    ) -> None:
+        if needed <= 0:
+            record_fn(baseCourses)
+            return
 
-    def __getScienceCourses(self, scienceCourses: list[Course]) -> List[Tuple[Course, ...]]:
-        possibleBioCombs = list(itertools.combinations(scienceCourses, MUST_BRING_IN_SCIENCE_COURSES(isBiology=True)))
-        possibleNonBioCombs = list(itertools.combinations(scienceCourses, MUST_BRING_IN_SCIENCE_COURSES(isBiology=False)))
-        return [comb for comb in possibleBioCombs if sum(course.subject == BIOLOGY for course in comb) == 4] + [comb for comb in possibleNonBioCombs if sum(course.subject == BIOLOGY for course in comb) == 0]
+        coursePoints = [self.__coursePointCache[course] for course in sortedCourses]
 
-    def __getTwoSubjectsCourses(self, possibleCourses: List[Course]) -> List[Tuple[Course, Course]]:
-        politicalCourses: list[Course] = [course for course in possibleCourses if course.subject.category == SubjectCategory.Political]
+        def optimistic_suffix(start_idx: int, slots: int) -> Points:
+            total = Points(0)
+            taken = 0
+            for idx in range(start_idx, len(sortedCourses)):
+                total += coursePoints[idx]
+                taken += 1
+                if taken == slots:
+                    break
+            return total
+
+        def backtrack(start_idx: int, chosen: List[Course], chosen_points: Points) -> None:
+            remaining_slots = needed - len(chosen)
+            if remaining_slots == 0:
+                record_fn(baseCourses + tuple(chosen))
+                return
+            if start_idx >= len(sortedCourses):
+                return
+
+            optimistic_total_points = (
+                basePoints + chosen_points + optimistic_suffix(start_idx, remaining_slots) + self.__examPoints
+            )
+            threshold = best_heap[0][0] if len(best_heap) >= limit else float('-inf')
+            if self.__scoreValue(optimistic_total_points) <= threshold:
+                return
+
+            max_index = len(sortedCourses) - remaining_slots + 1
+            for idx in range(start_idx, max_index):
+                course = sortedCourses[idx]
+                chosen.append(course)
+                new_points = chosen_points + coursePoints[idx]
+                backtrack(idx + 1, chosen, new_points)
+                chosen.pop()
+
+        backtrack(0, [], Points(0))
+
+    def __getScienceCourses(self, scienceCourses: list[Course]) -> List[Tuple[tuple[Course, ...], Points]]:
+        bio_required = MUST_BRING_IN_SCIENCE_COURSES(isBiology=True)
+        non_bio_required = MUST_BRING_IN_SCIENCE_COURSES(isBiology=False)
+
+        bio_combinations = self.__enumerateCombinations(
+            scienceCourses,
+            bio_required,
+            lambda comb: sum(course.subject == BIOLOGY for course in comb) == 4,
+        )
+        non_bio_combinations = self.__enumerateCombinations(
+            scienceCourses,
+            non_bio_required,
+            lambda comb: sum(course.subject == BIOLOGY for course in comb) == 0,
+        )
+
+        combined = bio_combinations + non_bio_combinations
+        combined.sort(key=lambda item: self.__scoreValue(item[1]), reverse=True)
+        return combined
+
+    def __getTwoSubjectsCourses(self, possibleCourses: List[Course]) -> List[Tuple[tuple[Course, ...], Points]]:
+        politicalCourses: list[Course] = [
+            course for course in possibleCourses if course.subject.category == SubjectCategory.Political
+        ]
         uncheckedCombinations: list[tuple[Course, Course]] = list(itertools.combinations(politicalCourses, 2))
-        return [combination for combination in uncheckedCombinations if any(course.subject != HISTORY for course in combination)]
-
-    def __getPossibleExtraCoursesCombinations(self, remainingCourses: List[Course], pickAmount: int) -> List[Tuple[Course, ...]]:
-        return list(itertools.combinations(remainingCourses, pickAmount))
-
+        validCombinations = [
+            combination
+            for combination in uncheckedCombinations
+            if any(course.subject != HISTORY for course in combination)
+        ]
+        results: List[Tuple[tuple[Course, ...], Points]] = []
+        for combination in validCombinations:
+            total = Points(0)
+            for course in combination:
+                total += self.__coursePointCache[course]
+            results.append((combination, total))
+        results.sort(key=lambda item: self.__scoreValue(item[1]), reverse=True)
+        return results
     def __getRemainingCoursesAmount(self, courses: List[Course], LKs: Tuple[Subject, Subject]) -> int:
         return MIN_GK_COURSES - (len(courses) - self.__countLKCourses(courses, LKs))
 
