@@ -11,6 +11,7 @@ class Subject:
 # 1
 GERMAN = Subject('Deutsch', SubjectCategory.LangArt)
 ENGLISH = Subject('Englisch', SubjectCategory.LangArt)
+ENGLISH_Z = Subject('Englisch-Z', SubjectCategory.LangArt)
 FRENCH = Subject('Französisch', SubjectCategory.LangArt)
 SPANISH = Subject('Spanisch', SubjectCategory.LangArt)
 LATIN = Subject('Latein', SubjectCategory.LangArt)
@@ -33,3 +34,5 @@ COMPUTER_SCIENCE = Subject('Informatik', SubjectCategory.MathScience)
 
 # 4
 PHYSICAL_EDUCATION = Subject('Sport', SubjectCategory.Physical)
+
+SUB = Subject('Studium und Beruf', SubjectCategory.Physical)
