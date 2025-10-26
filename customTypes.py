@@ -25,6 +25,8 @@ class Points:
     def __init__(self, value: float = 0, possibleIncrease: float = 0) -> None:
         self.value: float = value
         self.possibleIncrease: float = possibleIncrease
+    def getNumeric(self, max: int = 15) -> float:
+        return (17 - self.value*15/max)/3
     def __add__(self, other: Points | int) -> Points:
         if isinstance(other, Points):
             return Points(self.value+other.value, self.possibleIncrease + other.possibleIncrease)

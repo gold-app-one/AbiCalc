@@ -2,9 +2,9 @@ from typing import Callable, Iterable, List, Tuple
 from constants import (FINAL_EXAM_FACTOR, GK_FACTOR, LK_FACTOR, MAX_GK_COURSES, MAX_LK_COURSES,
     MAX_PE_COURSES, MIN_GK_COURSES, MIN_LK_COURSES, MIN_PASSED_GK, MIN_PASSED_GRADE, MIN_PASSED_LK,
     MIN_PE_COURSES, MUST_BRING_IN_SCIENCE_COURSES, MUST_BRING_IN_SPORT_COURSES,
-    MUST_BRING_POLITICS_OR_POLITICAL, NON_ELIGIBLE_GRADE, OVERALL_MIN_GRADE,
+    MUST_BRING_POLITICS_OR_POLITICAL, NON_ELIGIBLE_GRADE, OVERALL_MAX_GRADE, OVERALL_MIN_GRADE,
     OVERALL_MIN_GRADE_FINAL_EXAMS, OVERALL_MIN_GRADE_LK, MustBringInCourses)
-from customTypes import CourseType, FifthPKType, FinalExamType, LogType, Points, Semester, SubjectCategory
+from customTypes import UNKNOWN, CourseType, FifthPKType, FinalExamType, LogType, Points, Semester, SubjectCategory
 from logHelper import logExit, log
 from subjects import ARTS, BIOLOGY, CHEMISTRY, DS, ENGLISH, FRENCH, GEOGRAPHY, HISTORY, LATIN, MATHEMATICS, MUSIC, PHILOSOPHY, PHYSICAL_EDUCATION, PHYSICS, POLITICS, SPANISH, Subject, GERMAN
 import itertools
@@ -19,6 +19,23 @@ class FinalExam:
         self.subject: Subject = subject
         self.grade: Points = grade
         self.type: FinalExamType = type
+        self.prediction: Points | None = self.grade if self.grade != UNKNOWN else None
+    def getPredictedGrade(self, courses: list["Course"]) -> Points:
+        if self.prediction is not None:
+            return self.prediction
+        return self.predictGrade(courses)
+    def predictGrade(self, courses: list["Course"]) -> Points:
+        sameSubjectCourses: list[Course] = [c for c in courses if c.subject == self.subject and c.grade != UNKNOWN]
+        if not sameSubjectCourses:
+            return UNKNOWN
+        totalPoints: Points = Points(0)
+        for course in sameSubjectCourses:
+            totalPoints += course.grade
+        averagePoints: Points = totalPoints * (1 / len(sameSubjectCourses))
+        self.prediction = averagePoints
+        return self.prediction
+    def stringify(self, courses: list["Course"]) -> str:
+        return f'Prüfungsfach {self.type.name}: {self.getPredictedGrade(courses)}-{self.subject}'
 
 class FinalExams:
     def __init__(self, LK1: FinalExam, LK2: FinalExam, written: FinalExam, orally: FinalExam, fifth: FinalExam, fifthPKType: FifthPKType) -> None:
@@ -49,21 +66,47 @@ class Course:
         self.type: CourseType = type
         self.grade: Points = grade if isinstance(grade, Points) else Points(grade)
         self.semester: Semester = semester
-
+        self.prediction: Points | None = self.grade if self.grade != UNKNOWN else None
+    def getPredictedGrade(self, courses: list["Course"]) -> Points:
+        if self.prediction is not None:
+            return self.prediction
+        return self.predictGrade(courses)
+    def predictGrade(self, courses: list["Course"]) -> Points:
+        if self.grade != UNKNOWN:
+            return self.grade
+        sameSubjectCourses: list[Course] = [c for c in courses if c.subject == self.subject and c.grade != UNKNOWN]
+        if not sameSubjectCourses:
+            return UNKNOWN
+        totalPoints: Points = Points(0)
+        for course in sameSubjectCourses:
+            totalPoints += course.grade
+        averagePoints: Points = totalPoints * (1 / len(sameSubjectCourses))
+        self.prediction = averagePoints
+        return self.prediction
+    def stringify(self, courses: list["Course"]) -> str:
+        return f'{self.getPredictedGrade(courses)}-{self.subject}-Q{self.semester}'
+    def __str__(self) -> str:
+        return f'{self.grade}-{self.subject}-Q{self.semester}'
 class CreditedCombination:
-    def __init__(self, creditedCourses: tuple[Course, ...], finals: FinalExams) -> None:
+    def __init__(self, creditedCourses: Tuple[Course, ...], finals: FinalExams, allCourses: list[Course]) -> None:
         self.__creditedCourses = creditedCourses
         self.__finals = finals
         self.__LKs: Tuple[Subject, Subject] = (self.__finals.LK1.subject, self.__finals.LK2.subject)
+        self.__courses = allCourses
 
-    def getScore(self) -> Points:
+    def getScore(self) -> Tuple[Points, Points]:
         totalPoints: Points = Points(0)
+        predictedPoints: Points = Points(0)
         for course in self.__creditedCourses:
-            coursePoints: Points = course.grade * (LK_FACTOR if course.subject in self.__LKs else GK_FACTOR)
-            totalPoints += coursePoints
+            coursePredictedGrade: Points = course.getPredictedGrade(self.__courses)
+            coursePoints: Points = coursePredictedGrade * (LK_FACTOR if course.subject in self.__LKs else GK_FACTOR)
+            predictedPoints += coursePoints
+            totalPoints += course.grade * (LK_FACTOR if course.subject in self.__LKs else GK_FACTOR)
         for exam in (self.__finals.LK1, self.__finals.LK2, self.__finals.written, self.__finals.orally, self.__finals.fifth):
+            examPredictedGrade: Points = exam.getPredictedGrade(self.__courses)
+            predictedPoints += examPredictedGrade * FINAL_EXAM_FACTOR
             totalPoints += exam.grade * FINAL_EXAM_FACTOR
-        return totalPoints
+        return totalPoints, predictedPoints
 
     def getSummedLKGrade(self) -> Points:
         total: Points = Points(0)
@@ -109,7 +152,7 @@ class CreditedCombination:
 
     def passed(self) -> bool:
         eligibleCondition = self.__eligibleForExams
-        totalScoreCondition = lambda: self.getScore() >= OVERALL_MIN_GRADE
+        totalScoreCondition = lambda: self.getScore()[1] >= OVERALL_MIN_GRADE
         finalExamsCondition = self.__finalExamsPassed
         conditions = (
             totalScoreCondition,
@@ -119,10 +162,18 @@ class CreditedCombination:
         return all(condition() for condition in conditions)
 
     def __str__(self) -> str:
-        string: str = f'{"✅" if self.passed() else "❌"} - {self.getScore()}'
+        score: tuple[Points, Points] = self.getScore()
+        string: str = f'{"✅" if self.passed() else "❌"} - ({score[1].getNumeric(OVERALL_MAX_GRADE):.2f}){score[1]}{f"[{score[0]}]" if score[0] != score[1] else ""}\n\n📝Prüfungsnoten:\n\n'
+        for exam in (self.__finals.LK1, self.__finals.LK2, self.__finals.written, self.__finals.orally, self.__finals.fifth):
+            string += f'{exam.stringify(self.__courses)}\n'
+        string += '\n📚Kursnoten:\n'
+        semester: int = 0
         for course in sorted(self.__creditedCourses, key=lambda c: (c.semester, c.type, c.subject)):
-            string += (f'({course.grade}-{course.subject}-Q{course.semester})')
-        return string + '\n\n'
+            if semester != course.semester:
+                semester = course.semester
+                string += f'\n--- Q{semester} ---\n'
+            string += (f'({course.stringify(self.__courses)})\n')
+        return string + '\n--------------------------------------------------------------------------\n'
 
 
 class Calculator:
@@ -139,13 +190,15 @@ class Calculator:
     def getBestCombinations(self, amount: int = 5) -> None:
         def score_val(c: CreditedCombination) -> float:
             s = c.getScore()
-            return s.value + s.possibleIncrease / 2
+            return s[1].value + s[1].possibleIncrease / 2
 
         combinations = sorted(
             self.__getCreditedCombinations(amount),
             key=lambda c: (not c.passed(), -score_val(c))
         )
-        for comb in combinations[:amount]:
+        topIcons: dict[int, str] = {0: '🥇', 1: '🥈', 2: '🥉'}
+        for i, comb in enumerate(combinations[:amount]):
+            print(f'\n==================== #{i + 1} {topIcons.get(i, "")} Combination ====================\n')
             print(comb)
 
     def __checkValidity(self) -> bool:
@@ -258,10 +311,10 @@ class Calculator:
             if len(courses_tuple) != MIN_GK_COURSES + MIN_LK_COURSES:
                 log("Combination failed (couldn't get correct Amount)", LogType.LOG)
                 return
-            combination = CreditedCombination(creditedCourses=courses_tuple, finals=self.__finals)
+            combination = CreditedCombination(creditedCourses=courses_tuple, finals=self.__finals, allCourses=self.__courses)
             evaluated_combinations += 1
             score = combination.getScore()
-            score_value = self.__scoreValue(score)
+            score_value = self.__scoreValue(score[1])
             entry = (score_value, next(counter), combination)
             if len(best_heap) < limit:
                 heapq.heappush(best_heap, entry)
@@ -371,7 +424,7 @@ class Calculator:
         print(f"✅ Search complete! Combinations evaluated: {evaluated_combinations:,}\n")
         sorted_best = sorted(
             best_heap,
-            key=lambda entry: (not entry[2].passed(), -self.__scoreValue(entry[2].getScore()))
+            key=lambda entry: (not entry[2].passed(), -self.__scoreValue(entry[2].getScore()[1]))
         )
         return [entry[2] for entry in sorted_best]
 
