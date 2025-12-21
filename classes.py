@@ -15,12 +15,12 @@ if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8') # type: ignore
 
 class FinalExam:
-    def __init__(self, subject: Subject, type: FinalExamType, grade: Points) -> None:
+    def __init__(self, subject: Subject, type: FinalExamType, grade: Points | int) -> None:
         self.subject: Subject = subject
-        self.grade: Points = grade
+        self.grade: Points | int = grade
         self.type: FinalExamType = type
-        self.prediction: Points | None = self.grade if self.grade != UNKNOWN else None
-    def getPredictedGrade(self, courses: list["Course"]) -> Points:
+        self.prediction: Points | int | None = self.grade if self.grade != UNKNOWN else None
+    def getPredictedGrade(self, courses: list["Course"]) -> Points | int:
         if self.prediction is not None:
             return self.prediction
         return self.predictGrade(courses)
@@ -55,7 +55,7 @@ class FinalExams:
         has_written_5 = any(e.grade >= MIN_PASSED_GRADE for e in (self.LK1, self.LK2, self.written))
 
         exams = [self.LK1, self.LK2, self.written, self.orally, self.fifth]
-        total_exam_points: Points = sum((e.grade for e in exams), Points(0)) * FINAL_EXAM_FACTOR
+        total_exam_points: Points | int = sum((e.grade for e in exams), Points(0)) * FINAL_EXAM_FACTOR
         passed_total = total_exam_points >= OVERALL_MIN_GRADE_FINAL_EXAMS
 
         return has_two_pruef and has_LK_among_passed and has_written_5 and passed_total
@@ -103,7 +103,7 @@ class CreditedCombination:
             predictedPoints += coursePoints
             totalPoints += course.grade * (LK_FACTOR if course.subject in self.__LKs else GK_FACTOR)
         for exam in (self.__finals.LK1, self.__finals.LK2, self.__finals.written, self.__finals.orally, self.__finals.fifth):
-            examPredictedGrade: Points = exam.getPredictedGrade(self.__courses)
+            examPredictedGrade: Points | int = exam.getPredictedGrade(self.__courses)
             predictedPoints += examPredictedGrade * FINAL_EXAM_FACTOR
             totalPoints += exam.grade * FINAL_EXAM_FACTOR
         return totalPoints, predictedPoints
