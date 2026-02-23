@@ -17,7 +17,7 @@ class Subject:
     def __lt__(self, other: "Subject") -> bool:
         return self.name < other.name
     def __str__(self) -> str:
-        return f'{self.icon}{self.name}'
+        return f'{self.icon} {self.name}'
 
 # 1
 GERMAN = Subject('Deutsch', SubjectCategory.LangArt, '📕')
