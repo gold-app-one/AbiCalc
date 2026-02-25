@@ -3,6 +3,13 @@ from typing import TypeAlias, Literal
 from enum import Enum
 from functools import total_ordering
 
+class MenuKey(Enum):
+    START = 0
+    SETTINGS = 1
+    SUBJECTS = 2
+    GRADES = 3
+    RESULT = 4
+
 class LogType(Enum):
     LOG = 0
     INFO = 1
