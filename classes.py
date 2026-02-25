@@ -15,16 +15,31 @@ if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8') # type: ignore
 
 class FinalExam:
+    """
+    Vor.: -
+    Eff.: Ein Objekt der Klasse FinalExam wird im RAM initialisiert.
+    Erg.: Ein Objekt mit den lokalen Variablen subject, grade und type wird initialisiert.
+    """
     def __init__(self, subject: Subject, type: FinalExamType, grade: Points | int) -> None:
         self.subject: Subject = subject
         self.grade: Points | int = grade
         self.type: FinalExamType = type
         self.prediction: Points | int | None = self.grade if self.grade != UNKNOWN else None
     def getPredictedGrade(self, courses: list["Course"]) -> Points | int:
+        """
+        Vor.: "courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat.
+        Eff.: -
+        Erg.: Gibt die voraussichtliche Note als Points-Objekt oder int zurück. Wenn bereits eine Note vorhanden ist, wird diese als Points-Objekt oder int zurückgegeben.
+        """
         if self.prediction is not None:
             return self.prediction
         return self.predictGrade(courses)
     def predictGrade(self, courses: list["Course"]) -> Points:
+        """
+        Vor.: "courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat.
+        Eff.: -
+        Erg.: Berechnet die voraussichtliche Note als Points-Objekt basierend auf den Noten der Kurse im selben Fach. Wenn keine Noten für das Fach vorhanden sind, wird UNKNOWN zurückgegeben.
+        """
         sameSubjectCourses: list[Course] = [c for c in courses if c.subject == self.subject and c.grade != UNKNOWN]
         if not sameSubjectCourses:
             return UNKNOWN
@@ -35,9 +50,19 @@ class FinalExam:
         self.prediction = averagePoints
         return self.prediction
     def stringify(self, courses: list["Course"]) -> str:
+        """
+        Vor.: "courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat.
+        Eff.: -
+        Erg.: Gibt einen String zurück, der die Prüfungsart, die vorhergesagte Note und das Fach enthält.
+        """
         return f'Prüfungsfach {self.type.name}: {self.getPredictedGrade(courses)}-{self.subject}'
 
 class FinalExams:
+    """
+    Vor.: -
+    Eff.: Ein Objekt der Klasse FinalExams wird im RAM initialisiert.
+    Erg.: Ein Objekt mit den lokalen Variablen LK1, LK2, written, orally, fifth und fifthPKType wird initialisiert.
+    """
     def __init__(self, LK1: FinalExam, LK2: FinalExam, written: FinalExam, orally: FinalExam, fifth: FinalExam, fifthPKType: FifthPKType) -> None:
         self.LK1: FinalExam = LK1
         self.LK2: FinalExam = LK2
@@ -46,6 +71,11 @@ class FinalExams:
         self.fifth: FinalExam = fifth
 
     def checkMinRequirements(self) -> bool:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Überprüft, ob die Mindestanforderungen für das Bestehen der Abiturprüfungen erfüllt sind. Gibt True zurück, wenn alle Anforderungen erfüllt sind, andernfalls False.
+        """
         pruefungsfaecher = [self.LK1, self.LK2, self.written, self.orally]
         passed_flags = [e.grade >= MIN_PASSED_GRADE for e in pruefungsfaecher]
         has_two_pruef = sum(passed_flags) >= 2
@@ -61,6 +91,11 @@ class FinalExams:
         return has_two_pruef and has_LK_among_passed and has_written_5 and passed_total
 
 class Course:
+    """
+    Vor.: -
+    Eff.: Ein Objekt der Klasse Course wird im RAM initialisiert.
+    Erg.: Ein Objekt mit den lokalen Variablen subject, grade, type, semester und prediction wird initialisiert. "prediction" ist entweder die tatsächliche Note oder die vorhergesagte Note, falls die tatsächliche Note UNKNOWN ist.
+    """
     def __init__(self, subject: Subject, grade: Points | int | float, type: CourseType, semester: Semester) -> None:
         self.subject: Subject = subject
         self.type: CourseType = type
@@ -68,10 +103,20 @@ class Course:
         self.semester: Semester = semester
         self.prediction: Points | None = self.grade if self.grade != UNKNOWN else None
     def getPredictedGrade(self, courses: list["Course"]) -> Points:
+        """
+        Vor.: "courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat.
+        Eff.: -
+        Erg.: Gibt die voraussichtliche Note als Points-Objekt zurück. Wenn bereits eine Note vorhanden ist, wird diese als Points-Objekt zurückgegeben. Ansonsten wird die Note basierend auf den Noten der Kurse im selben Fach vorhergesagt. Wenn keine Noten für das Fach vorhanden sind, wird UNKNOWN zurückgegeben.
+        """
         if self.prediction is not None:
             return self.prediction
         return self.predictGrade(courses)
     def predictGrade(self, courses: list["Course"]) -> Points:
+        """
+        Vor.: "courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat.
+        Eff.: -
+        Erg.: Berechnet die voraussichtliche Note als Points-Objekt basierend auf den Noten der Kurse im selben Fach. Wenn keine Noten für das Fach vorhanden sind, wird UNKNOWN zurückgegeben.
+        """
         if self.grade != UNKNOWN:
             return self.grade
         sameSubjectCourses: list[Course] = [c for c in courses if c.subject == self.subject and c.grade != UNKNOWN]
@@ -84,10 +129,25 @@ class Course:
         self.prediction = averagePoints
         return self.prediction
     def stringify(self, courses: list["Course"]) -> str:
+        """
+        Vor.: "courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat.
+        Eff.: -
+        Erg.: Gibt einen String zurück, der die vorhergesagte Note, das Fach und das Semester enthält.
+        """
         return f'{self.getPredictedGrade(courses)}-{self.subject}-Q{self.semester}'
     def __str__(self) -> str:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt einen String zurück, der die tatsächliche Note, das Fach und das Semester enthält. Wenn die tatsächliche Note UNKNOWN ist, wird stattdessen die vorhergesagte Note angezeigt.
+        """
         return f'{self.grade}-{self.subject}-Q{self.semester}'
 class CreditedCombination:
+    """
+    Vor.: -
+    Eff.: Ein Objekt der Klasse CreditedCombination wird im RAM initialisiert.
+    Erg.: Ein Objekt mit den lokalen Variablen __creditedCourses, __finals, __LKs und __courses wird initialisiert. "creditedCourses" sind die Kurse, die für die Berechnung der Abiturnote berücksichtigt werden. "finals" enthält die Informationen über die Abiturprüfungen.
+    """
     def __init__(self, creditedCourses: Tuple[Course, ...], finals: FinalExams, allCourses: list[Course]) -> None:
         self.__creditedCourses = creditedCourses
         self.__finals = finals
@@ -95,6 +155,11 @@ class CreditedCombination:
         self.__courses = allCourses
 
     def getScore(self) -> Tuple[Points, Points]:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Berechnet die aktuelle Punktzahl und die voraussichtliche Punktzahl basierend auf den Kursen in "creditedCourses" und den Abiturprüfungen in "finals". Gibt ein Tupel zurück, wobei das erste Element die aktuelle Punktzahl und das zweite Element die voraussichtliche Punktzahl ist.
+        """
         totalPoints: Points = Points(0)
         predictedPoints: Points = Points(0)
         for course in self.__creditedCourses:
