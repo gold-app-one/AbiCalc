@@ -55,5 +55,5 @@ MIT
 
 ## Authors
 
-[yoshi-qq](https://github.com/yoshi-qq)  
+[yoshi-qq](https://github.com/yoshi-qq)
 [type-Ignore](https://github.com/type-Ignore)
