@@ -1,0 +1,114 @@
+from __future__ import annotations
+from textual.app import App, ComposeResult
+from textual.screen import Screen
+from textual.widgets import Header, Footer, Button, Static
+
+
+class SettingsScreen(Screen[None]):
+    app: MainApp
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Static("Einstellungen", classes="menu-title")
+        yield Static("Hier könnten wunderschöne Einstellungen sein\n"
+                     "An/Aus?", 
+                     id="settings_content")
+        yield Button("Zurück", id="settings_back")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "settings_back":
+            self.app.pop_screen()
+
+class GradesScreen(Screen[None]):
+    app: MainApp
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Static("Noten", classes="menu-title")
+        yield Static("Hier tragen wir unsere Noten ein\n"
+                     "Note 1\nNote2\nNote3", 
+                     id="grades_content")
+        yield Button("Back to Main", id="grades_back")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "grades_back":
+            self.app.pop_screen()
+
+class SubjectsScreen(Screen[None]):
+    app: MainApp
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Static("Noten", classes="menu-title")
+        yield Static("Hier tragen wir unsere Fächer ein\n"
+                     "Deutsch\nMathe\nEnglisch", 
+                     id="subjects_content")
+        yield Button("Back to Main", id="subjects_back")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "subjects_back":
+            self.app.pop_screen()
+
+class ResultsScreen(Screen[None]):
+    app: MainApp
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Static("Noten", classes="menu-title")
+        yield Static("Dein Schnitt\n"
+                     "2,05\nSpaß\n3,78", 
+                     id="content2")
+        yield Button("Back to Main", id="results_back")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "results_back":
+            self.app.pop_screen()
+
+# === MAIN APP
+
+class MainApp(App[None]):
+    CSS = """
+    .menu-title {
+        text-align: center;
+        margin: 2;
+        background: darkblue;
+        color: white;
+    }
+    Button {
+        margin: 1;
+    }
+    #content1, #content2 {
+        margin: 2 1;
+        height: 10;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Static("Hauptmenü", classes="menu-title")
+        yield Button("Noten bearbeiten", id="grades")
+        yield Button("Fächer bearbeiten", id="subjects")
+        yield Button("Ergebnisse berechnen", id="results")
+        yield Button("Einstellungen", id="settings")
+        yield Button("Beenden", id="quit")
+        yield Footer()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "settings":
+            self.push_screen(SettingsScreen())
+        elif event.button.id == "grades":
+            self.push_screen(GradesScreen())
+        elif event.button.id == "subjects":
+            self.push_screen(SubjectsScreen())
+        elif event.button.id == "results":
+            self.push_screen(ResultsScreen())
+        elif event.button.id == "quit":
+            self.exit()
+
+
+if __name__ == "__main__":
+    MainApp().run()

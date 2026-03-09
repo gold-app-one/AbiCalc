@@ -1,18 +1,19 @@
-import graphy as g
-from customTypes import MenuKey
+from app import MainApp
 
 
 class GUI:
-    MENU_ELEMENTS: dict[MenuKey, list[g.RenderObject]] = {
-        MenuKey.START: [],
-        MenuKey.SETTINGS: [],
-        MenuKey.SUBJECTS: [],
-        MenuKey.GRADES: [],
-        MenuKey.RESULT: []
-    }
     def __init__(self) -> None:
-        self.__darkMode: bool = True
-        self.__currentMenu: MenuKey = MenuKey.START
+        self.__app = MainApp()
+        
 
     def start(self) -> None:
-        pass
+        self.__app.run()
+
+
+def main() -> None:
+    gui = GUI()
+    gui.start()
+
+
+if __name__ == "__main__":
+    main()
