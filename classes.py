@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, List, Tuple
+from typing import Callable, Iterable, List, Literal, Tuple
 from constants import (FINAL_EXAM_FACTOR, GK_FACTOR, LK_FACTOR, MAX_GK_COURSES, MAX_LK_COURSES,
     MAX_PE_COURSES, MIN_GK_COURSES, MIN_LK_COURSES, MIN_PASSED_GK, MIN_PASSED_GRADE, MIN_PASSED_LK,
     MIN_PE_COURSES, MUST_BRING_IN_SCIENCE_COURSES, MUST_BRING_IN_SPORT_COURSES,
@@ -10,6 +10,10 @@ from subjects import ARTS, BIOLOGY, CHEMISTRY, DS, ENGLISH, FRENCH, GEOGRAPHY, H
 import itertools
 import sys
 import heapq
+
+from subjects import *
+from customTypes import CourseType, FifthPKType, FinalExamType, UNKNOWN
+
 
 if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8') # type: ignore
@@ -241,6 +245,168 @@ class CreditedCombination:
         return string + '\n--------------------------------------------------------------------------\n'
 
 
+C = Course
+GK = CourseType.GK
+LK = CourseType.LK
+
+class SaveState:
+    def __init__(self) -> None:
+
+        self.Lk1: Subject = GERMAN
+        self.Lk2: Subject = BIOLOGY
+
+        self.finals: FinalExams = FinalExams(
+            FinalExam(self.Lk1, FinalExamType.LK1, UNKNOWN),
+            FinalExam(self.Lk2, FinalExamType.LK2, UNKNOWN),
+            FinalExam(ENGLISH, FinalExamType.WRITTEN, UNKNOWN),
+            FinalExam(HISTORY, FinalExamType.ORALLY, UNKNOWN),
+            FinalExam(MATHEMATICS, FinalExamType.PRESENTATION, UNKNOWN),
+            FifthPKType.PP
+        )
+
+        self.Q1: list[Course] = [
+            C(self.Lk1, 10, LK, 1),
+            C(self.Lk2, 10, LK, 1),
+            C(GEOGRAPHY, 10, GK, 1),
+            C(ENGLISH, 10, GK, 1),
+            C(MUSIC, 10, GK, 1),
+            C(HISTORY, 10, GK, 1),
+            C(PHILOSOPHY, 10, GK, 1),
+            C(PHYSICS, 10, GK, 1),
+            C(MATHEMATICS, 10, GK, 1),
+            C(POLITICS, 10, GK, 1),
+            C(PHYSICAL_EDUCATION, 10, GK, 1),
+        ]
+
+        self.Q2: list[Course] = [
+            C(self.Lk1, 10, LK, 2),
+            C(self.Lk2, 10, LK, 2),
+            C(GEOGRAPHY, 10, GK, 2),
+            C(ENGLISH, 10, GK, 2),
+            C(MUSIC, 10, GK, 2),
+            C(HISTORY, 10, GK, 2),
+            C(PHILOSOPHY, 10, GK, 2),
+            C(PHYSICS, 10, GK, 2),
+            C(MATHEMATICS, 10, GK, 2),
+            C(POLITICS, 10, GK, 2),
+            C(PHYSICAL_EDUCATION, 10, GK, 2),
+        ]
+
+        self.Q3: list[Course] = [
+            C(self.Lk1, UNKNOWN, LK, 3),
+            C(self.Lk2, UNKNOWN, LK, 3),
+            C(GEOGRAPHY, UNKNOWN, GK, 3),
+            C(ENGLISH, UNKNOWN, GK, 3),
+            C(MUSIC, UNKNOWN, GK, 3),
+            C(HISTORY, UNKNOWN, GK, 3),
+            C(PHILOSOPHY, UNKNOWN, GK, 3),
+            C(PHYSICS, UNKNOWN, GK, 3),
+            C(COMPUTER_SCIENCE, UNKNOWN, GK, 3),
+            C(MATHEMATICS, UNKNOWN, GK, 3),
+            C(PHYSICAL_EDUCATION, UNKNOWN, GK, 3),
+        ]
+
+        self.Q4: list[Course] = [
+            C(self.Lk1, UNKNOWN, LK, 4),
+            C(self.Lk2, UNKNOWN, LK, 4),
+            C(GEOGRAPHY, UNKNOWN, GK, 4),
+            C(ENGLISH, UNKNOWN, GK, 4),
+            C(MUSIC, UNKNOWN, GK, 4),
+            C(HISTORY, UNKNOWN, GK, 4),
+            C(PHILOSOPHY, UNKNOWN, GK, 4),
+            C(PHYSICS, UNKNOWN, GK, 4),
+            C(COMPUTER_SCIENCE, UNKNOWN, GK, 4),
+            C(MATHEMATICS, UNKNOWN, GK, 4),
+            C(PHYSICAL_EDUCATION, UNKNOWN, GK, 4),
+        ]
+
+    def getLK(self, n: Literal[1, 2]) -> Subject:
+        return self.Lk1 if n == 1 else self.Lk2
+
+    def setLK(self, n: Literal[1, 2], subject: Subject) -> None:
+        if n == 1:
+            self.Lk1 = subject
+        else:
+            self.Lk2 = subject
+
+    def getQ(self, q: Literal[1, 2, 3, 4]) -> list[Course]:
+        match q:
+            case 1:
+                return self.Q1
+            case 2:
+                return self.Q2
+            case 3:
+                return self.Q3
+            case 4:
+                return self.Q4
+            case _:
+                pass
+        print("q \\in {1, 2, 3, 4} ")
+        return self.Q1
+
+    def popFromQ(self, q: Literal[1, 2, 3, 4], i: int) -> bool:
+        match q:
+            case 1:
+                bigQ = self.Q1
+            case 2:
+                bigQ = self.Q1
+            case 3:
+                bigQ = self.Q1
+            case 4:
+                bigQ = self.Q1
+            case _:
+                return False
+        if i >= len(bigQ):
+            return False
+        bigQ.pop(i)
+        return True
+
+    def addToQ(self, q: Literal[1, 2, 3, 4], course: Course) -> None:
+        match q:
+            case 1:
+                self.Q1.append(course)
+            case 2:
+                self.Q2.append(course)
+            case 3:
+                self.Q3.append(course)
+            case 4:
+                self.Q4.append(course)
+            case _:
+                pass
+
+    def getFinals(self) -> FinalExams:
+        return self.finals
+
+    def getFinal(self, f: FinalExamType) -> FinalExam:
+        F = FinalExamType
+        match f:
+            case F.LK1:
+                return self.finals.LK1
+            case F.LK2:
+                return self.finals.LK2
+            case F.WRITTEN:
+                return self.finals.written
+            case F.ORALLY:
+                return self.finals.orally
+            case _:
+                pass
+        return self.finals.fifth
+
+    def replaceFinal(self, final: FinalExam) -> None:
+        F = FinalExamType
+        match final.type:
+            case F.LK1:
+                self.finals.LK1 = final
+            case F.LK2:
+                self.finals.LK2 = final
+            case F.WRITTEN:
+                self.finals.written = final
+            case F.ORALLY:
+                self.finals.orally = final
+            case _:
+                self.finals.fifth = final
+
+
 class Calculator:
     def __init__(self, courses: List[Course], finals: FinalExams) -> None:
         self.__courses: List[Course] = courses
@@ -253,6 +419,13 @@ class Calculator:
         self.__checkValidity()
 
     def getBestCombinations(self, amount: int = 5) -> None:
+        topIcons: dict[int, str] = {0: '🥇', 1: '🥈', 2: '🥉'}
+        combinations = self.returnBestCombinations(amount)
+        for i, comb in enumerate(combinations[:amount]):
+            print(f'\n==================== #{i + 1} {topIcons.get(i, "")} Combination ====================\n')
+            print(comb)
+
+    def returnBestCombinations(self, amount: int = 1) -> list[CreditedCombination]:
         def score_val(c: CreditedCombination) -> float:
             s = c.getScore()
             return s[1].value + s[1].possibleIncrease / 2
@@ -261,10 +434,7 @@ class Calculator:
             self.__getCreditedCombinations(amount),
             key=lambda c: (not c.passed(), -score_val(c))
         )
-        topIcons: dict[int, str] = {0: '🥇', 1: '🥈', 2: '🥉'}
-        for i, comb in enumerate(combinations[:amount]):
-            print(f'\n==================== #{i + 1} {topIcons.get(i, "")} Combination ====================\n')
-            print(comb)
+        return combinations
 
     def __checkValidity(self) -> bool:
         return self.__enoughCoursesOfTypes()

@@ -3,15 +3,26 @@ from textual.app import App, ComposeResult
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Button, Static
 
+from classes import Calculator, Course, CreditedCombination, FinalExams, SaveState
+from subjects import *
+
+saveState = SaveState() # TODO: dynamic loading
+
+def getGrades() -> list[CreditedCombination]:
+    courses: list[Course] = saveState.getQ(1) + saveState.getQ(2) + saveState.getQ(3) + saveState.getQ(4)
+    finals: FinalExams = saveState.getFinals()
+    calculator = Calculator(courses, finals)
+
+    bestCombinations: list[CreditedCombination] = calculator.returnBestCombinations(1)
+
+    return bestCombinations
 
 class SettingsScreen(Screen[None]):
-    app: MainApp
-
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static("Einstellungen", classes="menu-title")
         yield Static("Hier könnten wunderschöne Einstellungen sein\n"
-                     "An/Aus?", 
+                     "An/Aus?",
                      id="settings_content")
         yield Button("Zurück", id="settings_back")
         yield Footer()
@@ -21,13 +32,11 @@ class SettingsScreen(Screen[None]):
             self.app.pop_screen()
 
 class GradesScreen(Screen[None]):
-    app: MainApp
-
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static("Noten", classes="menu-title")
         yield Static("Hier tragen wir unsere Noten ein\n"
-                     "Note 1\nNote2\nNote3", 
+                     "Note 1\nNote2\nNote3",
                      id="grades_content")
         yield Button("Back to Main", id="grades_back")
         yield Footer()
@@ -37,13 +46,11 @@ class GradesScreen(Screen[None]):
             self.app.pop_screen()
 
 class SubjectsScreen(Screen[None]):
-    app: MainApp
-
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static("Noten", classes="menu-title")
         yield Static("Hier tragen wir unsere Fächer ein\n"
-                     "Deutsch\nMathe\nEnglisch", 
+                     "Deutsch\nMathe\nEnglisch",
                      id="subjects_content")
         yield Button("Back to Main", id="subjects_back")
         yield Footer()
@@ -53,14 +60,12 @@ class SubjectsScreen(Screen[None]):
             self.app.pop_screen()
 
 class ResultsScreen(Screen[None]):
-    app: MainApp
-
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static("Noten", classes="menu-title")
-        yield Static("Dein Schnitt\n"
-                     "2,05\nSpaß\n3,78", 
-                     id="content2")
+        for i, comb in enumerate(getGrades()):
+            for j, line in enumerate(str(comb).splitlines()):
+                yield Static(content=line, id=f"resultsLine_{i}_{j}", markup=False)
         yield Button("Back to Main", id="results_back")
         yield Footer()
 

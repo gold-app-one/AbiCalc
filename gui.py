@@ -4,7 +4,7 @@ from app import MainApp
 class GUI:
     def __init__(self) -> None:
         self.__app = MainApp()
-        
+
 
     def start(self) -> None:
         self.__app.run()
