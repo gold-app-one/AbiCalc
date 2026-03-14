@@ -4,3 +4,4 @@ __pycache__/**
 /reference/**
 .github/**
 build/**
+**/__pycache__/**
