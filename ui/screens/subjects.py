@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from typing import Protocol, cast
 
+from textual import on
 from textual.app import ComposeResult
-from textual.widgets import Button, Static
+from textual.containers import Horizontal
+from textual.widgets import Button, Input, Select, Static
+
+from subjects import Subject
 
 from .base import BaseAbiScreen
 from ..state.session import SessionModel
@@ -18,58 +22,237 @@ class SubjectsScreen(BaseAbiScreen):
     def __init__(self) -> None:
         super().__init__()
         self._message = ""
+        self._syncing_controls = False
+        self._last_subject_option_signature: tuple[tuple[str, str], ...] = ()
 
-    def compose_body(self) -> ComposeResult:
+    def _build_state_text(self) -> str:
         app_ctx = cast(SubjectsAppContext, self.app_ctx)
         lk1 = app_ctx.session.get_lk(1)
         lk2 = app_ctx.session.get_lk(2)
-
-        yield AbiTitle(self.t("subjects.title"))
-
-        yield AbiCard(
+        return (
             f"{self.t('subjects.current')}\n"
             f"LK1: {lk1}\n"
             f"LK2: {lk2}"
         )
 
-        yield AbiCard(self.t("subjects.hint"), classes="abi-subtitle")
-        yield Button(self.t("subjects.lk1_prev"), id="subjects_lk1_prev", classes="abi-menu-button")
-        yield Button(self.t("subjects.lk1_next"), id="subjects_lk1_next", classes="abi-menu-button")
-        yield Button(self.t("subjects.lk2_prev"), id="subjects_lk2_prev", classes="abi-menu-button")
-        yield Button(self.t("subjects.lk2_next"), id="subjects_lk2_next", classes="abi-menu-button")
+    def _subject_options(self) -> list[tuple[str, str]]:
+        pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
+        return [(f"{idx + 1:02d} | {subject}", subject.name) for idx, subject in enumerate(pool)]
 
-        if self._message:
-            yield Static(self._message, classes="abi-warn")
+    def _subject_lookup(self) -> dict[str, Subject]:
+        pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
+        return {subject.name: subject for subject in pool}
+
+    def _subject_from_number(self, raw_number: str):
+        text = raw_number.strip()
+        if not text:
+            return None
+        try:
+            idx = int(text) - 1
+        except ValueError:
+            return None
+        pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
+        if idx < 0 or idx >= len(pool):
+            return None
+        return pool[idx]
+
+    def _sync_view(self) -> None:
+        self.query_one("#subjects_state", AbiCard).update(self._build_state_text())
+        self.query_one("#subjects_message", Static).update(self._message)
+
+        self._syncing_controls = True
+        pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
+        lk1_name = cast(SubjectsAppContext, self.app_ctx).session.get_lk(1).name
+        lk2_name = cast(SubjectsAppContext, self.app_ctx).session.get_lk(2).name
+
+        lk1_index = 0
+        lk2_index = 0
+        for idx, subject in enumerate(pool):
+            if subject.name == lk1_name:
+                lk1_index = idx
+            if subject.name == lk2_name:
+                lk2_index = idx
+
+        lk1_select = self.query_one("#subjects_lk1_select", Select)
+        lk2_select = self.query_one("#subjects_lk2_select", Select)
+        subject_options = self._subject_options()
+        option_signature = tuple(subject_options)
+        if option_signature != self._last_subject_option_signature:
+            lk1_select.set_options(subject_options)
+            lk2_select.set_options(subject_options)
+            self._last_subject_option_signature = option_signature
+        if str(lk1_select.value) != lk1_name:
+            lk1_select.value = lk1_name
+        if str(lk2_select.value) != lk2_name:
+            lk2_select.value = lk2_name
+
+        lk1_input = self.query_one("#subjects_lk1_number", Input)
+        lk2_input = self.query_one("#subjects_lk2_number", Input)
+        lk1_text = str(lk1_index + 1)
+        lk2_text = str(lk2_index + 1)
+        if lk1_input.value != lk1_text:
+            lk1_input.value = lk1_text
+        if lk2_input.value != lk2_text:
+            lk2_input.value = lk2_text
+        self._syncing_controls = False
+
+    @on(Select.Changed, "#subjects_lk1_select")
+    def _on_lk1_select_changed(self, event: Select.Changed) -> None:
+        if self._syncing_controls:
+            return
+        lookup = self._subject_lookup()
+        selected_name = str(event.value)
+        selected_subject = lookup.get(selected_name)
+        if selected_subject is None:
+            return
+
+        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(1):
+            return
+
+        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(1, selected_subject):
+            self._message = self.t("subjects.invalid_duplicate")
+            self._sync_view()
+            return
+
+        self._message = ""
+        self._sync_view()
+
+    @on(Select.Changed, "#subjects_lk2_select")
+    def _on_lk2_select_changed(self, event: Select.Changed) -> None:
+        if self._syncing_controls:
+            return
+        lookup = self._subject_lookup()
+        selected_name = str(event.value)
+        selected_subject = lookup.get(selected_name)
+        if selected_subject is None:
+            return
+
+        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(2):
+            return
+
+        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(2, selected_subject):
+            self._message = self.t("subjects.invalid_duplicate")
+            self._sync_view()
+            return
+
+        self._message = ""
+        self._sync_view()
+
+    @on(Input.Changed, "#subjects_lk1_number")
+    def _on_lk1_number_changed(self, event: Input.Changed) -> None:
+        if self._syncing_controls:
+            return
+        selected_subject = self._subject_from_number(event.value)
+        if selected_subject is None:
+            return
+        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(1):
+            return
+        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(1, selected_subject):
+            self._message = self.t("subjects.invalid_duplicate")
+            self._sync_view()
+            return
+        self._message = ""
+        self._sync_view()
+
+    @on(Input.Changed, "#subjects_lk2_number")
+    def _on_lk2_number_changed(self, event: Input.Changed) -> None:
+        if self._syncing_controls:
+            return
+        selected_subject = self._subject_from_number(event.value)
+        if selected_subject is None:
+            return
+        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(2):
+            return
+        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(2, selected_subject):
+            self._message = self.t("subjects.invalid_duplicate")
+            self._sync_view()
+            return
+        self._message = ""
+        self._sync_view()
+
+    def compose_body(self) -> ComposeResult:
+        app_ctx = cast(SubjectsAppContext, self.app_ctx)
+        options = self._subject_options()
+        lk1_name = app_ctx.session.get_lk(1).name
+        lk2_name = app_ctx.session.get_lk(2).name
+
+        yield AbiTitle(self.t("subjects.title"), id="subjects_title")
+
+        yield AbiCard(self._build_state_text(), id="subjects_state")
+
+        yield AbiCard(self.t("subjects.hint"), id="subjects_hint", classes="abi-subtitle")
+
+        with Horizontal(classes="abi-row"):
+            yield Select[str](options, value=lk1_name, allow_blank=False, id="subjects_lk1_select", classes="abi-row-field")
+            yield Input(
+                placeholder=self.t("subjects.number_placeholder"),
+                id="subjects_lk1_number",
+                restrict=r"[0-9]*",
+                classes="abi-row-field",
+            )
+
+        with Horizontal(classes="abi-row"):
+            yield Select[str](options, value=lk2_name, allow_blank=False, id="subjects_lk2_select", classes="abi-row-field")
+            yield Input(
+                placeholder=self.t("subjects.number_placeholder"),
+                id="subjects_lk2_number",
+                restrict=r"[0-9]*",
+                classes="abi-row-field",
+            )
+
+        yield Button(self.t("subjects.apply"), id="subjects_apply", classes="abi-menu-button")
+
+        yield Static(self._message, id="subjects_message", classes="abi-warn")
 
         yield self.factory.action_button("screen.back", "subjects_back")
+
+    def on_mount(self) -> None:
+        self._sync_view()
+
+    def refresh_labels(self) -> None:
+        super().refresh_labels()
+        self.query_one("#subjects_title", AbiTitle).update(self.t("subjects.title"))
+        self.query_one("#subjects_hint", AbiCard).update(self.t("subjects.hint"))
+        self.query_one("#subjects_apply", Button).label = self.t("subjects.apply")
+        self.query_one("#subjects_lk1_number", Input).placeholder = self.t("subjects.number_placeholder")
+        self.query_one("#subjects_lk2_number", Input).placeholder = self.t("subjects.number_placeholder")
+        self.query_one("#subjects_back", Button).label = self.t("screen.back")
+
+        self._sync_view()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         app_ctx = cast(SubjectsAppContext, self.app_ctx)
         button_id = event.button.id
 
-        if button_id == "subjects_lk1_prev":
-            if not app_ctx.session.cycle_lk(1, -1):
+        if button_id == "subjects_apply":
+            lookup = self._subject_lookup()
+            lk1_name = str(self.query_one("#subjects_lk1_select", Select).value)
+            lk2_name = str(self.query_one("#subjects_lk2_select", Select).value)
+            lk1 = lookup.get(lk1_name)
+            lk2 = lookup.get(lk2_name)
+
+            lk1_from_number = self._subject_from_number(self.query_one("#subjects_lk1_number", Input).value)
+            lk2_from_number = self._subject_from_number(self.query_one("#subjects_lk2_number", Input).value)
+            if lk1_from_number is not None:
+                lk1 = lk1_from_number
+            if lk2_from_number is not None:
+                lk2 = lk2_from_number
+
+            if lk1 is None or lk2 is None or lk1 == lk2:
                 self._message = self.t("subjects.invalid_duplicate")
-            else:
-                self._message = ""
-            self.refresh(layout=True)
-        elif button_id == "subjects_lk1_next":
-            if not app_ctx.session.cycle_lk(1, 1):
+                self._sync_view()
+                return
+
+            if not app_ctx.session.set_lk(1, lk1):
                 self._message = self.t("subjects.invalid_duplicate")
-            else:
-                self._message = ""
-            self.refresh(layout=True)
-        elif button_id == "subjects_lk2_prev":
-            if not app_ctx.session.cycle_lk(2, -1):
+                self._sync_view()
+                return
+            if not app_ctx.session.set_lk(2, lk2):
                 self._message = self.t("subjects.invalid_duplicate")
-            else:
-                self._message = ""
-            self.refresh(layout=True)
-        elif button_id == "subjects_lk2_next":
-            if not app_ctx.session.cycle_lk(2, 1):
-                self._message = self.t("subjects.invalid_duplicate")
-            else:
-                self._message = ""
-            self.refresh(layout=True)
+                self._sync_view()
+                return
+
+            self._message = ""
+            self.refresh_labels()
         elif button_id == "subjects_back":
             self.app_ctx.pop_screen()

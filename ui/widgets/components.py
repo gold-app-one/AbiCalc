@@ -12,8 +12,8 @@ class AbiButton(Button):
 
 
 class AbiTitle(Static):
-    def __init__(self, label: str) -> None:
-        super().__init__(label, classes="abi-title")
+    def __init__(self, label: str, *, id: str | None = None) -> None:
+        super().__init__(label, id=id, classes="abi-title")
 
 
 class AbiCard(Static):

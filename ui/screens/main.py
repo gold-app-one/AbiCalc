@@ -18,13 +18,29 @@ class MainMenuScreen(BaseAbiScreen):
         return button
 
     def compose_body(self) -> ComposeResult:
-        yield AbiTitle(self.t("main.title"))
+        yield AbiTitle(self.t("main.title"), id="main_title")
         yield self._styled_menu_button("main.subjects", "main_subjects")
         yield self._styled_menu_button("main.grades", "main_grades")
         yield self._styled_menu_button("main.exams", "main_exams")
         yield self._styled_menu_button("main.results", "main_results")
         yield self._styled_menu_button("main.settings", "main_settings")
         yield self._styled_menu_button("main.quit", "main_quit")
+
+    def refresh_labels(self) -> None:
+        super().refresh_labels()
+        self.query_one("#main_title", AbiTitle).update(self.t("main.title"))
+
+        labels = {
+            "main_subjects": self.t("main.subjects"),
+            "main_grades": self.t("main.grades"),
+            "main_exams": self.t("main.exams"),
+            "main_results": self.t("main.results"),
+            "main_settings": self.t("main.settings"),
+            "main_quit": self.t("main.quit"),
+        }
+
+        for button_id, label in labels.items():
+            self.query_one(f"#{button_id}", Button).label = label
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
@@ -49,4 +65,4 @@ class MainMenuScreen(BaseAbiScreen):
 
             self.app_ctx.push_screen(SettingsScreen())
         elif button_id == "main_quit":
-            self.app_ctx.exit()
+            self.app_ctx.quit_with_save()

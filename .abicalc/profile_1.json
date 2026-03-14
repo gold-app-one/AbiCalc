@@ -1,0 +1,456 @@
+{
+  "profile": 1,
+  "lk": {
+    "lk1": "Chemie",
+    "lk2": "Mathematik"
+  },
+  "courses": {
+    "q1": [
+      {
+        "subject": "Deutsch",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 12.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Englisch",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Darstellendes Spiel",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Geschichte",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 12.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Philosophie",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Mathematik",
+        "type": "LK",
+        "semester": 1,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Physik",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 15.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Chemie",
+        "type": "LK",
+        "semester": 1,
+        "grade": {
+          "value": 12.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Informatik",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Studium und Beruf",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 15.0,
+          "possible_increase": 0.0
+        }
+      }
+    ],
+    "q2": [
+      {
+        "subject": "Deutsch",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Englisch",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Darstellendes Spiel",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Geschichte",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Philosophie",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 15.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Mathematik",
+        "type": "LK",
+        "semester": 2,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Physik",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Chemie",
+        "type": "LK",
+        "semester": 2,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Informatik",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Sport",
+        "type": "GK",
+        "semester": 1,
+        "grade": {
+          "value": 11.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Sport",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 11.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Studium und Beruf",
+        "type": "GK",
+        "semester": 2,
+        "grade": {
+          "value": 10.0,
+          "possible_increase": 0.0
+        }
+      }
+    ],
+    "q3": [
+      {
+        "subject": "Deutsch",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Englisch",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Darstellendes Spiel",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Geschichte",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 11.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Philosophie",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Mathematik",
+        "type": "LK",
+        "semester": 3,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Physik",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Chemie",
+        "type": "LK",
+        "semester": 3,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Informatik",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 13.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Sport",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 10.0,
+          "possible_increase": 0.0
+        }
+      },
+      {
+        "subject": "Englisch-Z",
+        "type": "GK",
+        "semester": 3,
+        "grade": {
+          "value": 14.0,
+          "possible_increase": 0.0
+        }
+      }
+    ],
+    "q4": [
+      {
+        "subject": "Deutsch",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Englisch",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Darstellendes Spiel",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Geschichte",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Philosophie",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Mathematik",
+        "type": "LK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Physik",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Chemie",
+        "type": "LK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Informatik",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Sport",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      },
+      {
+        "subject": "Englisch-Z",
+        "type": "GK",
+        "semester": 4,
+        "grade": {
+          "value": 0.0,
+          "possible_increase": 15.0
+        }
+      }
+    ]
+  },
+  "finals": {
+    "lk1": {
+      "subject": "Chemie",
+      "type": "LK1",
+      "grade": {
+        "value": 0.0,
+        "possible_increase": 15.0
+      }
+    },
+    "lk2": {
+      "subject": "Mathematik",
+      "type": "LK2",
+      "grade": {
+        "value": 0.0,
+        "possible_increase": 15.0
+      }
+    },
+    "written": {
+      "subject": "Physik",
+      "type": "WRITTEN",
+      "grade": {
+        "value": 0.0,
+        "possible_increase": 15.0
+      }
+    },
+    "orally": {
+      "subject": "Englisch",
+      "type": "ORALLY",
+      "grade": {
+        "value": 0.0,
+        "possible_increase": 15.0
+      }
+    },
+    "fifth": {
+      "subject": "Geschichte",
+      "type": "PRESENTATION",
+      "grade": {
+        "value": 0.0,
+        "possible_increase": 15.0
+      }
+    },
+    "fifth_pk_type": "PP"
+  }
+}

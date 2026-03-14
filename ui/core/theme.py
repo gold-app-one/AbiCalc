@@ -171,4 +171,38 @@ class ThemeManager:
         .abi-spacer {{
             height: 1;
         }}
+
+        .abi-topbar {{
+            margin: 0 2;
+            height: 3;
+        }}
+
+        .abi-topbar-spacer {{
+            width: 1fr;
+        }}
+
+        Button.abi-topbar-button {{
+            width: auto;
+            min-width: 16;
+            margin: 0;
+            background: {t.primary_muted};
+            color: {t.text};
+            border: round {t.primary};
+            text-style: bold;
+        }}
+
+        .abi-row {{
+            margin: 0 2;
+            height: auto;
+        }}
+
+        .abi-row-field {{
+            width: 1fr;
+            margin: 1 1 1 0;
+        }}
+
+        .abi-row-button {{
+            width: 1fr;
+            margin: 1 1 1 0;
+        }}
         """
