@@ -29,7 +29,7 @@ class SettingsScreen(Screen[None]):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "settings_back":
-            self.app.pop_screen()
+            self.app.pop_screen() # type: ignore
 
 class GradesScreen(Screen[None]):
     def compose(self) -> ComposeResult:
@@ -43,7 +43,7 @@ class GradesScreen(Screen[None]):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "grades_back":
-            self.app.pop_screen()
+            self.app.pop_screen() # type: ignore
 
 class SubjectsScreen(Screen[None]):
     def compose(self) -> ComposeResult:
@@ -57,7 +57,7 @@ class SubjectsScreen(Screen[None]):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "subjects_back":
-            self.app.pop_screen()
+            self.app.pop_screen() # type: ignore
 
 class ResultsScreen(Screen[None]):
     def compose(self) -> ComposeResult:
@@ -71,7 +71,7 @@ class ResultsScreen(Screen[None]):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "results_back":
-            self.app.pop_screen()
+            self.app.pop_screen() # type: ignore
 
 # === MAIN APP
 
