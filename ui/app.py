@@ -69,6 +69,7 @@ class MainApp(App[None]):
         return loaded
 
     def _write_generated_css(self) -> None:
+        self._generated_css_path.parent.mkdir(parents=True, exist_ok=True)
         self._generated_css_path.write_text(self.theme_manager.build_css(), encoding="utf-8")
 
     def _refresh_runtime_styles(self) -> None:
