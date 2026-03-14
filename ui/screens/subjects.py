@@ -138,38 +138,6 @@ class SubjectsScreen(BaseAbiScreen):
         self._message = ""
         self._sync_view()
 
-    @on(Input.Changed, "#subjects_lk1_number")
-    def _on_lk1_number_changed(self, event: Input.Changed) -> None:
-        if self._syncing_controls:
-            return
-        selected_subject = self._subject_from_number(event.value)
-        if selected_subject is None:
-            return
-        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(1):
-            return
-        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(1, selected_subject):
-            self._message = self.t("subjects.invalid_duplicate")
-            self._sync_view()
-            return
-        self._message = ""
-        self._sync_view()
-
-    @on(Input.Changed, "#subjects_lk2_number")
-    def _on_lk2_number_changed(self, event: Input.Changed) -> None:
-        if self._syncing_controls:
-            return
-        selected_subject = self._subject_from_number(event.value)
-        if selected_subject is None:
-            return
-        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(2):
-            return
-        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(2, selected_subject):
-            self._message = self.t("subjects.invalid_duplicate")
-            self._sync_view()
-            return
-        self._message = ""
-        self._sync_view()
-
     def compose_body(self) -> ComposeResult:
         app_ctx = cast(SubjectsAppContext, self.app_ctx)
         options = self._subject_options()
@@ -207,6 +175,8 @@ class SubjectsScreen(BaseAbiScreen):
         yield self.factory.action_button("screen.back", "subjects_back")
 
     def on_mount(self) -> None:
+        self.query_one("#subjects_lk1_number", Input).cursor_blink = False
+        self.query_one("#subjects_lk2_number", Input).cursor_blink = False
         self._sync_view()
 
     def refresh_labels(self) -> None:
