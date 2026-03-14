@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import shutil
 
 from textual.app import App, ComposeResult
 
@@ -20,8 +22,36 @@ class MainApp(App[None]):
     def __init__(self) -> None:
         super().__init__()
         base_dir = Path(__file__).resolve().parent.parent
+        storage_root = self._resolve_storage_root(base_dir)
+        storage_root.mkdir(parents=True, exist_ok=True)
 
-        self.config_manager = ConfigManager(base_dir / "ui_config.json")
+        legacy_config_path = base_dir / "ui_config.json"
+        legacy_profiles_dir = base_dir / ".abicalc"
+        config_path = storage_root / "ui_config.json"
+        profiles_dir = storage_root / "profiles"
+
+        if not config_path.exists() and legacy_config_path.exists():
+            try:
+                shutil.copy2(legacy_config_path, config_path)
+            except OSError:
+                pass
+
+        if not profiles_dir.exists() and legacy_profiles_dir.exists():
+            try:
+                shutil.copytree(legacy_profiles_dir, profiles_dir)
+            except OSError:
+                pass
+
+        profiles_dir.mkdir(parents=True, exist_ok=True)
+        if not any(profiles_dir.glob("profile_*.json")):
+            default_profile_path = legacy_profiles_dir / "profile_1.json"
+            if default_profile_path.exists():
+                try:
+                    shutil.copy2(default_profile_path, profiles_dir / "profile_1.json")
+                except OSError:
+                    pass
+
+        self.config_manager = ConfigManager(config_path)
         self.config = self.config_manager.load()
 
         themes_dir = base_dir / "ui" / "styles" / "themes"
@@ -30,11 +60,17 @@ class MainApp(App[None]):
 
         self.i18n = I18nProvider(self.config.language)
         self.factory = WidgetFactory(self.i18n)
-        self.session = SessionModel(data_dir=base_dir / ".abicalc")
+        self.session = SessionModel(data_dir=profiles_dir)
         self.session.load_profile(1)
 
         self._generated_css_path = base_dir / "ui" / "styles" / "generated.tcss"
         self._write_generated_css()
+
+    def _resolve_storage_root(self, base_dir: Path) -> Path:
+        appdata = os.getenv("APPDATA")
+        if appdata:
+            return Path(appdata) / "AbiCalc"
+        return base_dir / ".abicalc-runtime"
 
     def compose(self) -> ComposeResult:
         yield SplashScreen()
