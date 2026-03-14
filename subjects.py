@@ -3,6 +3,11 @@ from functools import total_ordering
 
 @total_ordering
 class Subject:
+    """
+    Vor.: Name 'name', Kategorie 'category' und optional ein Icon 'icon' als String
+    Eff.: initiert ein Objekt der Klasse Subject im RAM
+    Erg.: -
+    """
     idCounter: int = 0
     def __init__(self, name: str, category: SubjectCategory, icon: str = '❔') -> None:
         Subject.idCounter += 1
@@ -11,12 +16,27 @@ class Subject:
         self.category = category
         self.icon = icon
     def __eq__(self, other: "Subject | object") -> bool:
+        """
+        Vor.: ein anderes Objekt
+        Eff.: -
+        Erg.: True, wenn das andere Objekt ein Subject mit dem selben Namen ist, sonst False
+        """
         if isinstance(other, Subject):
             return self.name == other.name
         return self.__eq__(other)
     def __lt__(self, other: "Subject") -> bool:
+        """
+        Vor.: ein anderes Subject
+        Eff.: -
+        Erg.: True, wenn der Name dieses Subjects alphabetisch vor dem Namen des anderen
+        """
         return self.name < other.name
     def __str__(self) -> str:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: eine Stringdarstellung des Subjects
+        """
         return f'{self.icon} {self.name}'
 
 # 1

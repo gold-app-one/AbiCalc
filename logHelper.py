@@ -10,8 +10,18 @@ logTypeIcons: dict[LogType, str] = {
 }
 
 def log(message: str, type: LogType) -> None:
+    """
+    Vor.: eine Nachricht als String und ein LogType
+    Eff.: gibt die Nachricht aus, wenn der LogType größer oder gleich dem LOG_LEVEL ist
+    Erg.: -
+    """
     if LOG_LEVEL <= type.value:
         print(f'{logTypeIcons[type]}|{message}')
 
 def logExit(message: str) -> NoReturn:
+    """
+    Vor.: eine Fehlermeldung als String
+    Eff.: gibt die Fehlermeldung aus
+    Erg.: -
+    """
     raise Exception(f'🚫|{message}')

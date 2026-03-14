@@ -17,6 +17,11 @@ from .widgets.factory import WidgetFactory
 
 
 class MainApp(App[None]):
+    """
+    Vor.: -
+    Eff.: initiert ein Objekt der Klasse MainApp im RAM
+    Erg.: -
+    """
     TITLE = "AbiCalc 2026"
     CSS_PATH = "styles/generated.tcss"
     BINDINGS = [("ctrl+p", "command_palette", "Befehls-Palette")]
@@ -69,39 +74,79 @@ class MainApp(App[None]):
         self._write_generated_css()
 
     def _resolve_storage_root(self, base_dir: Path) -> Path:
+        """
+        Vor.: base_dir ist ein gültiger Pfad als Path-Objekt, der das Verzeichnis repräsentiert, in dem die Anwendung installiert ist
+        Eff.: -
+        Erg.: Gibt den Pfad zurück, der als Speicherort für die Konfigurationsdateien und Profildaten der Anwendung verwendet werden soll. Bevorzugt wird der APPDATA-Ordner unter Windows, andernfalls wird ein verstecktes Verzeichnis im Installationsverzeichnis der Anwendung verwendet.
+        """
         appdata = os.getenv("APPDATA")
         if appdata:
             return Path(appdata) / "AbiCalc"
         return base_dir / ".abicalc-runtime"
 
     def compose(self) -> ComposeResult:
+        """
+        Vor.: -
+        Eff.: definiert die Startansicht der GUI
+        Erg.: ein Generator, der die Startansicht der GUI zurückgibt
+        """
         yield SplashScreen()
 
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
+        """
+        Vor.: screen ist ein gültiges Screen-Objekt
+        Eff.: -
+        Erg.: ein Generator, der die Systembefehle zurückgibt
+        """
         for command in super().get_system_commands(screen):
             if command.title in {"Theme", "Keys"}:
                 continue
             yield command
 
     def apply_theme(self, theme_name: str) -> None:
+        """
+        Vor.: theme_name ist der Name eines verfügbaren Themes als String
+        Eff.: -
+        Erg.: lädt das angegebene Theme und aktualisiert die CSS-Styles der Anwendung entsprechend
+        """
         self.theme_manager.load(theme_name)
         self._write_generated_css()
         self._refresh_runtime_styles()
 
     def apply_language(self, language: str) -> None:
+        """
+        Vor.: language ist der Code einer unterstützten Sprache als String
+        Eff.: -
+        Erg.: aktualisiert die Sprache der Anwendung entsprechend und refreshes die Labels aller Views
+        """
         self.i18n.set_language(language)
         self.sub_title = ""
         self._refresh_translated_views()
 
     def save_profile(self, profile: int) -> Path:
+        """
+        Vor.: profile ist die Nummer eines Profils als Integer
+        Eff.: -
+        Erg.: speichert die Daten des angegebenen Profils und gibt den Pfad zurück, unter dem die Profildaten gespeichert wurden
+        """
         return self.session.save_profile(profile)
 
     def load_profile(self, profile: int) -> bool:
+        """
+        Vor.: profile ist die Nummer eines Profils als Integer
+        Eff.: -
+        Erg.: lädt die Daten des angegebenen Profils und aktualisiert die Views entsprechend. Gibt True zurück, wenn das Profil erfolgreich geladen wurde, andernfalls False.
+        """
         loaded = self.session.load_profile(profile)
         self._refresh_translated_views()
         return loaded
 
     def switch_profile(self, profile: int) -> bool:
+        """
+        Vor.: profile ist die Nummer eines Profils als Integer
+        Eff.: -
+        Erg.: speichert die Daten des aktuell aktiven Profils, lädt die Daten des angegebenen Profils und aktualisiert die Views entsprechend. Gibt True zurück, wenn das Profil erfolgreich geladen wurde, andernfalls False.
+        """
         current = self.session.active_profile
         self.session.save_profile(current)
 
@@ -113,10 +158,20 @@ class MainApp(App[None]):
         return loaded
 
     def _write_generated_css(self) -> None:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: schreibt die generierten CSS-Styles in die Datei
+        """
         self._generated_css_path.parent.mkdir(parents=True, exist_ok=True)
         self._generated_css_path.write_text(self.theme_manager.build_css(), encoding="utf-8")
 
     def _refresh_runtime_styles(self) -> None:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: aktualisiert die CSS-Styles aller Views zur Laufzeit, um Änderungen am Theme oder an den generierten Styles widerzuspiegeln
+        """
         refresh_css = getattr(self, "refresh_css", None)
         if callable(refresh_css):
             try:
@@ -130,6 +185,11 @@ class MainApp(App[None]):
             pass
 
     def _refresh_translated_views(self) -> None:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: aktualisiert die Labels aller Views zur Laufzeit, um Änderungen an der Sprache widerzuspiegeln
+        """
         screen = self.screen
         refresh_labels = getattr(screen, "refresh_labels", None)
         if callable(refresh_labels):
@@ -141,13 +201,28 @@ class MainApp(App[None]):
         self._refresh_runtime_styles()
 
     def on_mount(self) -> None:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: setzt den Untertitel der Anwendung auf einen leeren String, um sicherzustellen, dass kein unerwünschter Text im Titel angezeigt wird
+        """
         self.sub_title = ""
 
     def quit_with_save(self) -> None:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: speichert die Daten des aktuell aktiven Profils, speichert die Konfigurationsdaten und beendet die Anwendung
+        """
         self.session.save_profile(self.session.active_profile)
         self.config_manager.save()
         self.exit()
 
     def on_exit(self) -> None:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: speichert die Daten des aktuell aktiven Profils und die Konfigurationsdaten, bevor die Anwendung vollständig beendet wird
+        """
         self.session.save_profile(self.session.active_profile)
         self.config_manager.save()

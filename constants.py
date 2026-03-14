@@ -39,6 +39,11 @@ MUST_BRING_IN_FOREIGN_LANGUAGE_COURSES: int = 4
 MUST_BRING_IN_ART_COURSES: int = 2
 MUST_BRING_IN_HISTORY_COURSES: int = 2
 def MUST_BRING_POLITICS_OR_POLITICAL(fifth: Subject) -> Tuple[int, int]:
+  """
+  Vor.: ein fünftes Fach als Subject
+  Eff.: -
+  Erg.: ein Tupel aus zwei Integern, die angeben, wie viele Kurse
+  """
   if fifth == HISTORY:
     return (2, 4)
   elif fifth.category == SubjectCategory.Political:
@@ -47,22 +52,37 @@ def MUST_BRING_POLITICS_OR_POLITICAL(fifth: Subject) -> Tuple[int, int]:
     return (0, 4)
 MUST_BRING_IN_MATH_COURSES: int = 4
 def MUST_BRING_IN_SCIENCE_COURSES(isBiology: bool) -> int:
+  """
+  Vor.: ein Boolean, ob Biologie das fünfte Fach ist
+  Eff.: -
+  Erg.: die Anzahl der Kurse, die in den Naturwissenschaften eingebracht werden müssen
+  """
   if isBiology:
     return 6
   else:
     return 4
 def MUST_BRING_IN_SPORT_COURSES(hasPEAsFinal: bool) -> int:
+  """
+  Vor.: ein Boolean, ob Sport als Prüfungsfach gewählt wurde
+  Eff.: -
+  Erg.: die Anzahl der Kurse, die in Sport eingebracht werden müssen
+  """
   if hasPEAsFinal:
     return 4
   else:
     return 0
 
 class MustBringInCourses(Enum):
-    German = MUST_BRING_IN_GERMAN_COURSES
-    ForeignLanguage = MUST_BRING_IN_FOREIGN_LANGUAGE_COURSES
-    Art = MUST_BRING_IN_ART_COURSES
-    History = 2
-    # Political = MUST_BRING_IN_POLITICAL_COURSES
-    Maths = MUST_BRING_IN_MATH_COURSES
-    Science = MUST_BRING_IN_SCIENCE_COURSES
-    Sport = MUST_BRING_IN_SPORT_COURSES
+  """
+  Vor.: -
+  Eff.: initiert ein Objekt der Klasse MustBringInCourses im RAM
+  Erg.: -
+  """
+  German = MUST_BRING_IN_GERMAN_COURSES
+  ForeignLanguage = MUST_BRING_IN_FOREIGN_LANGUAGE_COURSES
+  Art = MUST_BRING_IN_ART_COURSES
+  History = 2
+  # Political = MUST_BRING_IN_POLITICAL_COURSES
+  Maths = MUST_BRING_IN_MATH_COURSES
+  Science = MUST_BRING_IN_SCIENCE_COURSES
+  Sport = MUST_BRING_IN_SPORT_COURSES

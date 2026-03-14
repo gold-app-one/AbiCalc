@@ -178,6 +178,11 @@ class CreditedCombination:
         return totalPoints, predictedPoints
 
     def getSummedLKGrade(self) -> Points:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt die summierte Note der LK-Kurse zurück.
+        """
         total: Points = Points(0)
         lkCourses: List[Course] = [course for course in self.__creditedCourses if course.subject in self.__LKs]
         for lk in lkCourses:
@@ -186,6 +191,11 @@ class CreditedCombination:
         return total
 
     def __eligibleForExams(self) -> bool:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt zurück, ob der Schüler für die Abiturprüfungen qualifiziert ist.
+        """
         if any(c.grade == NON_ELIGIBLE_GRADE for c in self.__creditedCourses):
             return False
 
@@ -217,9 +227,19 @@ class CreditedCombination:
 
 
     def __finalExamsPassed(self) -> bool:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt zurück, ob die Mindestanforderungen für das Bestehen der Abiturprüfungen erfüllt sind.
+        """
         return self.__finals.checkMinRequirements()
 
     def passed(self) -> bool:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt zurück, ob der Schüler voraussichtlich bestehen wird, basierend auf der aktuellen Punktzahl, der Qualifikation für die Prüfungen und den Anforderungen für das Bestehen der Prüfungen.
+        """
         eligibleCondition = self.__eligibleForExams
         totalScoreCondition = lambda: self.getScore()[1] >= OVERALL_MIN_GRADE
         finalExamsCondition = self.__finalExamsPassed
@@ -231,6 +251,11 @@ class CreditedCombination:
         return all(condition() for condition in conditions)
 
     def __str__(self) -> str:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt eine Stringdarstellung der aktuellen Punktzahl, der voraussichtlichen Punktzahl, der Prüfungsnoten und der Kursnoten zurück.
+        """
         score: tuple[Points, Points] = self.getScore()
         string: str = f'{"✅" if self.passed() else "❌"} - ({score[1].getNumeric(OVERALL_MAX_GRADE):.2f}){score[1]}{f"[{score[0]}]" if score[0] != score[1] else ""}\n\n📝Prüfungsnoten:\n\n'
         for exam in (self.__finals.LK1, self.__finals.LK2, self.__finals.written, self.__finals.orally, self.__finals.fifth):
@@ -250,6 +275,11 @@ GK = CourseType.GK
 LK = CourseType.LK
 
 class SaveState:
+    """
+    Vor.: -
+    Eff.: Ein Objekt der Klasse SaveState wird im RAM initialisiert.
+    Erg.: Ein Objekt mit den lokalen Variablen Lk1, Lk2, finals, Q1, Q2, Q3 und Q4 wird initialisiert. "Lk1" und "Lk2" sind die beiden Leistungskurse. "finals" enthält die Informationen über die Abiturprüfungen. "Q1", "Q2", "Q3" und "Q4" sind Listen von Course-Objekten, die die Kurse repräsentieren, die der Schüler in den jeweiligen Quartalen besucht hat.
+    """
     def __init__(self) -> None:
 
         self.Lk1: Subject = GERMAN
@@ -321,15 +351,30 @@ class SaveState:
         ]
 
     def getLK(self, n: Literal[1, 2]) -> Subject:
+        """
+        Vor.: n ist entweder 1 oder 2
+        Eff.: -
+        Erg.: Gibt das Subject des entsprechenden Leistungskurses zurück.
+        """
         return self.Lk1 if n == 1 else self.Lk2
 
     def setLK(self, n: Literal[1, 2], subject: Subject) -> None:
+        """
+        Vor.: n ist entweder 1 oder 2, subject ist ein Subject-Objekt
+        Eff.: Setzt das Subject des entsprechenden Leistungskurses auf den angegebenen Wert.
+        Erg.: -
+        """
         if n == 1:
             self.Lk1 = subject
         else:
             self.Lk2 = subject
 
     def getQ(self, q: Literal[1, 2, 3, 4]) -> list[Course]:
+        """
+        Vor.: q ist entweder 1, 2, 3 oder 4
+        Eff.: -
+        Erg.: Gibt die Liste der Kurse für das entsprechende Quartal zurück.
+        """
         match q:
             case 1:
                 return self.Q1
@@ -345,15 +390,20 @@ class SaveState:
         return self.Q1
 
     def popFromQ(self, q: Literal[1, 2, 3, 4], i: int) -> bool:
+        """
+        Vor.: q ist entweder 1, 2, 3 oder 4, i ist ein gültiger Index in der Liste der Kurse für das entsprechende Quartal
+        Eff.: Entfernt den Kurs an der angegebenen Position aus der Liste der Kurse für das entsprechende Quartal.
+        Erg.: Gibt True zurück, wenn der Kurs erfolgreich entfernt wurde, andernfalls False.
+        """
         match q:
             case 1:
                 bigQ = self.Q1
             case 2:
-                bigQ = self.Q1
+                bigQ = self.Q2
             case 3:
-                bigQ = self.Q1
+                bigQ = self.Q3
             case 4:
-                bigQ = self.Q1
+                bigQ = self.Q4
             case _:
                 return False
         if i >= len(bigQ):
@@ -362,6 +412,11 @@ class SaveState:
         return True
 
     def addToQ(self, q: Literal[1, 2, 3, 4], course: Course) -> None:
+        """
+        Vor.: q ist entweder 1, 2, 3 oder 4, course ist ein Course-Objekt
+        Eff.: Fügt den angegebenen Kurs zur Liste der Kurse für das entsprechende Quartal hinzu.
+        Erg.: -
+        """
         match q:
             case 1:
                 self.Q1.append(course)
@@ -375,9 +430,19 @@ class SaveState:
                 pass
 
     def getFinals(self) -> FinalExams:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Gibt das FinalExams-Objekt zurück, das die Informationen über die Abiturprüfungen enthält.
+        """
         return self.finals
 
     def getFinal(self, f: FinalExamType) -> FinalExam:
+        """
+        Vor.: f ist ein FinalExamType-Objekt
+        Eff.: -
+        Erg.: Gibt das FinalExam-Objekt zurück, das der angegebenen Prüfungsart entspricht.
+        """
         F = FinalExamType
         match f:
             case F.LK1:
@@ -393,6 +458,11 @@ class SaveState:
         return self.finals.fifth
 
     def replaceFinal(self, final: FinalExam) -> None:
+        """
+        Vor.: final ist ein FinalExam-Objekt
+        Eff.: Ersetzt das FinalExam-Objekt in "finals", das der Prüfungsart von "final" entspricht, durch das angegebene FinalExam-Objekt.
+        Erg.: -
+        """
         F = FinalExamType
         match final.type:
             case F.LK1:
@@ -408,6 +478,11 @@ class SaveState:
 
 
 class Calculator:
+    """
+    Vor.: -
+    Eff.: Ein Objekt der Klasse Calculator wird im RAM initialisiert.
+    Erg.: Ein Objekt mit den lokalen Variablen __courses, __finals, __lkSubjects, __examPoints und __coursePointCache wird initialisiert. "__courses" ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat. "__finals" enthält die Informationen über die Abiturprüfungen. "__lkSubjects" ist ein Tupel der Fächer der beiden Leistungskurse. "__examPoints" ist die berechnete Punktzahl basierend auf den Abiturprüfungen. "__coursePointCache" ist ein Dictionary, das die berechneten Punktzahlen für jeden Kurs speichert, um wiederholte Berechnungen zu vermeiden.
+    """
     def __init__(self, courses: List[Course], finals: FinalExams) -> None:
         self.__courses: List[Course] = courses
         self.__finals = finals
@@ -419,6 +494,11 @@ class Calculator:
         self.__checkValidity()
 
     def getBestCombinations(self, amount: int = 5) -> None:
+        """
+        Vor.: amount ist eine positive ganze Zahl
+        Eff.: -
+        Erg.: Gibt die besten Kombinationen von Kursen zurück, die für die Berechnung der Abiturnote berücksichtigt werden können, sortiert nach der voraussichtlichen Punktzahl. Die Anzahl der zurückgegebenen Kombinationen wird durch "amount" bestimmt.
+        """
         topIcons: dict[int, str] = {0: '🥇', 1: '🥈', 2: '🥉'}
         combinations = self.returnBestCombinations(amount)
         for i, comb in enumerate(combinations[:amount]):
@@ -426,7 +506,17 @@ class Calculator:
             print(comb)
 
     def returnBestCombinations(self, amount: int = 1) -> list[CreditedCombination]:
+        """
+        Vor.: amount ist eine positive ganze Zahl
+        Eff.: -
+        Erg.: Gibt die besten Kombinationen von Kursen zurück, die für die Berechnung der Abiturnote berücksichtigt werden können, sortiert nach der voraussichtlichen Punktzahl. Die Anzahl der zurückgegebenen Kombinationen wird durch "amount" bestimmt.
+        """
         def score_val(c: CreditedCombination) -> float:
+            """
+            Vor.: c ist ein CreditedCombination-Objekt
+            Eff.: -
+            Erg.: Gibt den Wert zurück, der zur Sortierung der Kombinationen verwendet wird. Kombinationen, die voraussichtlich nicht bestehen werden, erhalten eine niedrigere Punktzahl, um sie weiter unten in der Sortierung zu platzieren. Ansonsten wird die voraussichtliche Punktzahl der Kombination zurückgegeben.
+            """
             s = c.getScore()
             return s[1].value + s[1].possibleIncrease / 2
 
@@ -437,18 +527,38 @@ class Calculator:
         return combinations
 
     def __checkValidity(self) -> bool:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Überprüft, ob die eingegebenen Daten gültig sind. Gibt True zurück, wenn die Daten gültig sind, andernfalls wird das Programm mit einer Fehlermeldung beendet.
+        """
         return self.__enoughCoursesOfTypes()
 
     def __scoreValue(self, points: Points) -> float:
+        """
+        Vor.: points ist ein Points-Objekt
+        Eff.: -
+        Erg.: Gibt den Wert zurück, der zur Sortierung der Kombinationen verwendet wird. Kombinationen, die voraussichtlich nicht bestehen werden, erhalten eine niedrigere Punktzahl, um sie weiter unten in der Sortierung zu platzieren. Ansonsten wird die voraussichtliche Punktzahl zurückgegeben.
+        """
         return points.value + points.possibleIncrease / 2
 
     def __calculateExamPoints(self) -> Points:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Berechnet die Punktzahl basierend auf den Abiturprüfungen. Gibt die berechnete Punktzahl als Points-Objekt zurück.
+        """
         total = Points(0)
         for exam in (self.__finals.LK1, self.__finals.LK2, self.__finals.written, self.__finals.orally, self.__finals.fifth):
             total += exam.grade * FINAL_EXAM_FACTOR
         return total
 
     def __calculateCoursePoints(self, course: Course) -> Points:
+        """
+        Vor.: course ist ein Course-Objekt
+        Eff.: -
+        Erg.: Berechnet die Punktzahl für den angegebenen Kurs basierend auf der Note und dem Kurstyp (Leistungskurs oder Grundkurs). Gibt die berechnete Punktzahl als Points-Objekt zurück.
+        """
         factor = LK_FACTOR if course.subject in self.__lkSubjects else GK_FACTOR
         return course.grade * factor
 
@@ -456,6 +566,11 @@ class Calculator:
         self,
         combinations: Iterable[tuple[tuple[Course, ...], Points]]
     ) -> List[tuple[tuple[Course, ...], set[Course], Points]]:
+        """
+        Vor.: combinations ist ein Iterable von Tupeln, wobei jedes Tupel eine Kombination von Kursen und die berechnete Punktzahl für diese Kombination enthält.
+        Eff.: -
+        Erg.: Bereitet die Kombinationen vor, indem sie in eine Liste von Tupeln umgewandelt werden, wobei jedes Tupel die Kombination von Kursen, eine Menge der Kurse für schnelle Schnittmengenprüfungen und die berechnete Punktzahl enthält. Gibt die vorbereiteten Kombinationen als Liste zurück.
+        """
         prepared: List[tuple[tuple[Course, ...], set[Course], Points]] = []
         for courses, points in combinations:
             prepared.append((courses, set(courses), points))
@@ -467,6 +582,11 @@ class Calculator:
         pick: int,
         filter_fn: Callable[[tuple[Course, ...]], bool] | None = None,
     ) -> List[tuple[tuple[Course, ...], Points]]:
+        """
+        Vor.: courses ist eine Liste von Course-Objekten, pick ist die Anzahl der zu wählenenden Kurse, filter_fn ist eine Funktion, die verwendet wird, um Kombinationen zu filtern.
+        Eff.: -
+        Erg.: Gibt eine Liste von Tupeln zurück, wobei jedes Tupel eine Kombination von Kursen und die berechnete Punktzahl für diese Kombination enthält.
+        """
         if pick < 0:
             return []
         combinations: List[tuple[tuple[Course, ...], Points]] = []
@@ -481,6 +601,11 @@ class Calculator:
         return combinations
 
     def __getCreditedCombinations(self, limit: int) -> List[CreditedCombination]:
+        """
+        Vor.: limit ist eine positive ganze Zahl
+        Eff.: -
+        Erg.: Gibt eine Liste von CreditedCombination-Objekten zurück, die die besten Kombinationen von Kursen repräsentieren, die für die Berechnung der Abiturnote berücksichtigt werden können. Die Anzahl der zurückgegebenen Kombinationen wird durch "limit" bestimmt.
+        """
         M = MustBringInCourses
         germanCourses: List[Course] = [course for course in self.__courses if course.subject == GERMAN]
         foreignLangCourses: List[Course] = [
@@ -542,6 +667,11 @@ class Calculator:
         evaluated_combinations = 0
 
         def record_combination(courses_tuple: tuple[Course, ...]) -> None:
+            """
+            Vor.: courses_tuple ist ein Tupel von Course-Objekten, das eine Kombination von Kursen repräsentiert.
+            Eff.: -
+            Erg.: Bewertet die Kombination von Kursen und fügt sie in den Heap der besten Kombinationen ein, wenn sie zu den besten Kombinationen gehört. Der Heap wird so verwaltet, dass er immer nur die besten "limit" Kombinationen enthält.
+            """
             nonlocal evaluated_combinations
             if len(courses_tuple) != MIN_GK_COURSES + MIN_LK_COURSES:
                 log("Combination failed (couldn't get correct Amount)", LogType.LOG)
@@ -664,6 +794,11 @@ class Calculator:
         return [entry[2] for entry in sorted_best]
 
     def __sumTopCoursePoints(self, sortedCourses: List[Course], count: int) -> Points:
+        """
+        Vor.: sortedCourses ist eine Liste von Course-Objekten, sortiert nach absteigender Punktzahl, count ist eine positive ganze Zahl, die angibt, wie viele der Top-Kurse summiert werden sollen
+        Eff.: -
+        Erg.: Gibt die Summe der Punktzahlen der Top "count" Kurse in "sortedCourses" zurück.
+        """
         total = Points(0)
         for course in sortedCourses[:count]:
             total += self.__coursePointCache[course]
@@ -679,6 +814,11 @@ class Calculator:
         best_heap: List[tuple[float, int, CreditedCombination]],
         limit: int,
     ) -> None:
+        """
+        Vor.: sortedCourses ist eine Liste von Course-Objekten, sortiert nach absteigender Punktzahl, needed ist eine positive ganze Zahl, die angibt, wie viele zusätzliche Kurse hinzugefügt werden sollen, baseCourses ist ein Tupel von Course-Objekten, basePoints ist die Summe der Punkte der Basis-Kurse, record_fn ist eine Funktion, die verwendet wird, um gültige Kombinationen zu speichern, best_heap ist ein Heap, der die besten Kombinationen speichert, limit ist eine positive ganze Zahl, die angibt, wie viele der besten Kombinationen gespeichert werden sollen
+        Eff.: -
+        Erg.: Durchsucht alle möglichen Kombinationen von zusätzlichen Kursen und fügt gültige Kombinationen in den Heap der besten Kombinationen ein.
+        """
         if needed <= 0:
             record_fn(baseCourses)
             return
@@ -686,6 +826,11 @@ class Calculator:
         coursePoints = [self.__coursePointCache[course] for course in sortedCourses]
 
         def optimistic_suffix(start_idx: int, slots: int) -> Points:
+            """
+            Vor.: start_idx ist ein gültiger Index in sortedCourses, slots ist eine positive ganze Zahl, die angibt, wie viele Kurse noch hinzugefügt werden müssen
+            Eff.: -
+            Erg.: Gibt die Summe der Punktzahlen der besten "slots" Kurse zurück, beginnend ab "start_idx" in "sortedCourses". Diese Funktion wird verwendet, um eine optimistische Schätzung der maximal erreichbaren Punktzahl zu erhalten, um unnötige Berechnungen zu vermeiden.
+            """
             total = Points(0)
             taken = 0
             for idx in range(start_idx, len(sortedCourses)):
@@ -696,6 +841,11 @@ class Calculator:
             return total
 
         def backtrack(start_idx: int, chosen: List[Course], chosen_points: Points) -> None:
+            """
+            Vor.: start_idx ist ein gültiger Index in sortedCourses, chosen ist eine Liste von Course-Objekten, die die aktuell gewählten Kurse repräsentiert, chosen_points ist die Summe der Punkte der aktuell gewählten Kurse
+            Eff.: -
+            Erg.: Durchsucht rekursiv alle möglichen Kombinationen von Kursen, beginnend ab "start_idx", und fügt gültige Kombinationen in den Heap der besten Kombinationen ein. Verwendet die "optimistic_suffix"-Funktion, um unnötige Berechnungen zu vermeiden, wenn die maximal erreichbare Punktzahl nicht ausreicht, um in den Heap aufgenommen zu werden.
+            """
             remaining_slots = needed - len(chosen)
             if remaining_slots == 0:
                 record_fn(baseCourses + tuple(chosen))
@@ -721,6 +871,11 @@ class Calculator:
         backtrack(0, [], Points(0))
 
     def __getScienceCourses(self, scienceCourses: list[Course]) -> List[Tuple[tuple[Course, ...], Points]]:
+        """
+        Vor.: scienceCourses ist eine Liste von Course-Objekten, die die naturwissenschaftlichen Kurse repräsentieren, die der Schüler besucht hat
+        Eff.: -
+        Erg.: Gibt eine Liste von Tupeln zurück, wobei jedes Tupel eine Kombination von naturwissenschaftlichen Kursen und die berechnete Punktzahl für diese Kombination enthält. Es werden sowohl Kombinationen mit Biologie als auch ohne Biologie berücksichtigt, um die Anforderungen für die Abiturprüfungen zu erfüllen.
+        """
         bio_required = MUST_BRING_IN_SCIENCE_COURSES(isBiology=True)
         non_bio_required = MUST_BRING_IN_SCIENCE_COURSES(isBiology=False)
 
@@ -740,6 +895,11 @@ class Calculator:
         return combined
 
     def __getTwoSubjectsCourses(self, possibleCourses: List[Course]) -> List[Tuple[tuple[Course, ...], Points]]:
+        """
+        Vor.: possibleCourses ist eine Liste von Course-Objekten, die die Kurse repräsentieren, die der Schüler besucht hat und die für die Kategorie "Politik/Geschichte/Geographie/Philosophie" in Betracht gezogen werden können
+        Eff.: -
+        Erg.: Gibt eine Liste von Tupeln zurück, wobei jedes Tupel eine Kombination von zwei Kursen aus der Kategorie "Politik/Geschichte/Geographie/Philosophie" und die berechnete Punktzahl für diese Kombination enthält. Es werden nur Kombinationen berücksichtigt, bei denen nicht beide Kurse Geschichte sind, um die Anforderungen für die Abiturprüfungen zu erfüllen.
+        """
         politicalCourses: list[Course] = [
             course for course in possibleCourses if course.subject.category == SubjectCategory.Political
         ]
@@ -758,12 +918,27 @@ class Calculator:
         results.sort(key=lambda item: self.__scoreValue(item[1]), reverse=True)
         return results
     def __getRemainingCoursesAmount(self, courses: List[Course], LKs: Tuple[Subject, Subject]) -> int:
+        """
+        Vor.: courses ist eine Liste von Course-Objekten, LKs ist ein Tupel von Subject-Objekten, die die Fächer der beiden Leistungskurse repräsentieren
+        Eff.: -
+        Erg.: Gibt die Anzahl der zusätzlichen Grundkurse zurück, die benötigt werden, um die Mindestanforderungen für die Anzahl der Kurse zu erfüllen, basierend auf der Anzahl der bereits ausgewählten Kurse und der Anzahl der Leistungskurse in diesen Kursen. Wenn die Anzahl negativ ist, bedeutet dies, dass zu viele Kurse ausgewählt wurden.
+        """
         return MIN_GK_COURSES - (len(courses) - self.__countLKCourses(courses, LKs))
 
     def __countLKCourses(self, courses: List[Course], LKs: Tuple[Subject, Subject]) -> int:
+        """
+        Vor.: courses ist eine Liste von Course-Objekten, LKs ist ein Tupel von Subject-Objekten, die die Fächer der beiden Leistungskurse repräsentieren
+        Eff.: -
+        Erg.: Gibt die Anzahl der Kurse in "courses" zurück, die zu den Leistungskursen in "LKs" gehören.
+        """
         return sum(1 for course in courses if course.subject in LKs)
 
     def __enoughCoursesOfTypes(self) -> bool:
+        """
+        Vor.: -
+        Eff.: -
+        Erg.: Überprüft, ob die Anzahl der Leistungskurse und Grundkurse in den eingegebenen Daten den Mindest- und Höchstanforderungen entspricht. Gibt True zurück, wenn die Anforderungen erfüllt sind, andernfalls wird das Programm mit einer Fehlermeldung beendet.
+        """
         LKs: List[Subject] = []
         LKAmount: int = 0
         GKAmount: int = 0
