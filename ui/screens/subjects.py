@@ -96,48 +96,6 @@ class SubjectsScreen(BaseAbiScreen):
             lk2_input.value = lk2_text
         self._syncing_controls = False
 
-    @on(Select.Changed, "#subjects_lk1_select")
-    def _on_lk1_select_changed(self, event: Select.Changed) -> None:
-        if self._syncing_controls:
-            return
-        lookup = self._subject_lookup()
-        selected_name = str(event.value)
-        selected_subject = lookup.get(selected_name)
-        if selected_subject is None:
-            return
-
-        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(1):
-            return
-
-        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(1, selected_subject):
-            self._message = self.t("subjects.invalid_duplicate")
-            self._sync_view()
-            return
-
-        self._message = ""
-        self._sync_view()
-
-    @on(Select.Changed, "#subjects_lk2_select")
-    def _on_lk2_select_changed(self, event: Select.Changed) -> None:
-        if self._syncing_controls:
-            return
-        lookup = self._subject_lookup()
-        selected_name = str(event.value)
-        selected_subject = lookup.get(selected_name)
-        if selected_subject is None:
-            return
-
-        if selected_subject == cast(SubjectsAppContext, self.app_ctx).session.get_lk(2):
-            return
-
-        if not cast(SubjectsAppContext, self.app_ctx).session.set_lk(2, selected_subject):
-            self._message = self.t("subjects.invalid_duplicate")
-            self._sync_view()
-            return
-
-        self._message = ""
-        self._sync_view()
-
     def compose_body(self) -> ComposeResult:
         app_ctx = cast(SubjectsAppContext, self.app_ctx)
         options = self._subject_options()

@@ -3,8 +3,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import shutil
+from typing import Iterable
 
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, SystemCommand
+from textual.screen import Screen
 
 from .core.config import ConfigManager
 from .core.i18n import I18nProvider
@@ -74,6 +76,12 @@ class MainApp(App[None]):
 
     def compose(self) -> ComposeResult:
         yield SplashScreen()
+
+    def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
+        for command in super().get_system_commands(screen):
+            if command.title in {"Theme", "Keys"}:
+                continue
+            yield command
 
     def apply_theme(self, theme_name: str) -> None:
         self.theme_manager.load(theme_name)

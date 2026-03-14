@@ -109,7 +109,7 @@ class I18nProvider:
             "results.preview_delta": "Trend",
             "results.open_detail": "Details zu Kombination {index}/{total}",
             "results.detail_title": "Kombination {index} von {total}",
-            "results.detail_hint": "Tipp: Mit Zurueck kommst du wieder zur Ergebnisliste.",
+            "results.detail_hint": "Tipp: Mit Zurück kommst du wieder zur Ergebnisliste.",
             "results.detail_rank": "Rang",
             "results.detail_status": "Status",
             "results.detail_current": "Ist-Stand",
