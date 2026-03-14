@@ -1,0 +1,11 @@
+{
+  "background": "#dce6ee",
+  "surface": "#f3f8fc",
+  "primary": "#0a6d8f",
+  "primary_muted": "#c2dbe6",
+  "text": "#13202b",
+  "text_muted": "#395263",
+  "ok": "#15803d",
+  "warn": "#9a3412",
+  "error": "#b91c1c"
+}
