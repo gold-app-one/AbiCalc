@@ -44,7 +44,7 @@ BIOLOGY = Subject('Biologie', SubjectCategory.MathScience, '🧬')
 COMPUTER_SCIENCE = Subject('Informatik', SubjectCategory.MathScience, '💻')
 
 # 4
-PHYSICAL_EDUCATION = Subject('Sport', SubjectCategory.Physical, '🏋️‍♂️')
+PHYSICAL_EDUCATION = Subject('Sport', SubjectCategory.Physical, '👟')
 
 # Miscellaneous
 SUB = Subject('Studium und Beruf', SubjectCategory.Other, '🎓')
