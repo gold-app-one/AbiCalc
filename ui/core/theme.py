@@ -137,24 +137,24 @@ class ThemeManager:
         }}
 
         Button.abi-menu-button {{
-            background: #163042;
-            color: #ffffff;
-            border: round #ffffff;
+            background: {t.primary};
+            color: {t.surface};
+            border: round {t.primary};
         }}
 
         Button.abi-menu-button .button--label {{
-            color: #ffffff;
+            color: {t.surface};
             text-style: bold;
         }}
 
         Button.abi-menu-button.-active {{
-            background: #ffffff;
-            color: #163042;
-            border: round #163042;
+            background: {t.surface};
+            color: {t.primary};
+            border: round {t.primary};
         }}
 
         Button.abi-menu-button.-active .button--label {{
-            color: #163042;
+            color: {t.primary};
             text-style: bold;
         }}
 

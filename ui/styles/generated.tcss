@@ -1,61 +1,61 @@
 
         Screen {
-            background: #dce6ee;
-            color: #13202b;
+            background: #0f172a;
+            color: #e5e7eb;
         }
 
         Header {
-            background: #0a6d8f;
-            color: #f3f8fc;
+            background: #0ea5e9;
+            color: #111827;
         }
 
         Footer {
-            background: #0a6d8f;
-            color: #f3f8fc;
+            background: #0ea5e9;
+            color: #111827;
         }
 
         .abi-title {
             text-align: center;
             margin: 1 1 0 1;
             padding: 1;
-            background: #0a6d8f;
-            color: #f3f8fc;
+            background: #0ea5e9;
+            color: #111827;
             text-style: bold;
         }
 
         .abi-subtitle {
             margin: 0 2 1 2;
-            color: #395263;
+            color: #94a3b8;
         }
 
         .abi-card {
             margin: 1 2;
             padding: 1 2;
-            background: #f3f8fc;
-            border: round #c2dbe6;
+            background: #111827;
+            border: round #1e293b;
         }
 
         Button {
-            background: #c2dbe6;
-            color: #13202b;
-            border: round #0a6d8f;
+            background: #1e293b;
+            color: #e5e7eb;
+            border: round #0ea5e9;
         }
 
         Button.-active {
-            background: #0a6d8f;
-            color: #f3f8fc;
+            background: #0ea5e9;
+            color: #111827;
         }
 
         .abi-ok {
-            color: #15803d;
+            color: #22c55e;
         }
 
         .abi-warn {
-            color: #9a3412;
+            color: #f59e0b;
         }
 
         .abi-error {
-            color: #b91c1c;
+            color: #f87171;
         }
 
         .abi-menu-button {
@@ -65,24 +65,24 @@
         }
 
         Button.abi-menu-button {
-            background: #163042;
-            color: #ffffff;
-            border: round #ffffff;
+            background: #0ea5e9;
+            color: #111827;
+            border: round #0ea5e9;
         }
 
         Button.abi-menu-button .button--label {
-            color: #ffffff;
+            color: #111827;
             text-style: bold;
         }
 
         Button.abi-menu-button.-active {
-            background: #ffffff;
-            color: #163042;
-            border: round #163042;
+            background: #111827;
+            color: #0ea5e9;
+            border: round #0ea5e9;
         }
 
         Button.abi-menu-button.-active .button--label {
-            color: #163042;
+            color: #0ea5e9;
             text-style: bold;
         }
 
@@ -91,9 +91,9 @@
         }
 
         Button.abi-action-row {
-            background: #c2dbe6;
-            color: #13202b;
-            border: round #0a6d8f;
+            background: #1e293b;
+            color: #e5e7eb;
+            border: round #0ea5e9;
         }
 
         .abi-spacer {
@@ -113,9 +113,9 @@
             width: auto;
             min-width: 16;
             margin: 0;
-            background: #c2dbe6;
-            color: #13202b;
-            border: round #0a6d8f;
+            background: #1e293b;
+            color: #e5e7eb;
+            border: round #0ea5e9;
             text-style: bold;
         }
 

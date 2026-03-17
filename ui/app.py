@@ -190,6 +190,11 @@ class MainApp(App[None]):
         except Exception:
             pass
 
+        try:
+            self.refresh(layout=True, repaint=True)
+        except Exception:
+            pass
+
     def _refresh_translated_views(self) -> None:
         """
         Vor.: -

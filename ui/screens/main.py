@@ -9,13 +9,7 @@ from ..widgets.components import AbiTitle
 
 class MainMenuScreen(BaseAbiScreen):
     def _styled_menu_button(self, label_key: str, button_id: str) -> Button:
-        button = self.factory.menu_button(label_key, button_id)
-        # Hard fallback: direct widget styles avoid CSS selector/theme mismatches.
-        button.styles.background = "#163042"
-        button.styles.color = "#ffffff"
-        button.styles.border = ("round", "#ffffff")
-        button.styles.text_style = "bold"
-        return button
+        return self.factory.menu_button(label_key, button_id)
 
     def compose_body(self) -> ComposeResult:
         yield AbiTitle(self.t("main.title"), id="main_title")
