@@ -77,6 +77,19 @@ class GradesScreen(BaseAbiScreen):
         rendered_options = options if options else [("-", "0")]
         option_signature = tuple(rendered_options)
         course_select = self.query_one("#grades_course_select", Select)
+
+        # Compute target value and set it BEFORE set_options so Textual never
+        # sees an out-of-bounds value and resets to the first item, which would
+        # queue a conflicting Changed event causing an infinite ping-pong loop.
+        if courses:
+            self._course_index = max(0, min(self._course_index, len(courses) - 1))
+            course_value = str(self._course_index)
+        else:
+            self._course_index = 0
+            course_value = "0"
+        if str(course_select.value) != course_value:
+            course_select.value = course_value
+
         if option_signature != self._last_course_option_signature:
             course_select.set_options(rendered_options)
             self._last_course_option_signature = option_signature
@@ -89,16 +102,6 @@ class GradesScreen(BaseAbiScreen):
             self._last_add_subject_signature = add_subject_signature
             if add_subject_options:
                 add_subject_select.value = add_subject_options[0][1]
-
-        if courses:
-            self._course_index = max(0, min(self._course_index, len(courses) - 1))
-            course_value = str(self._course_index)
-            if str(course_select.value) != course_value:
-                course_select.value = course_value
-        else:
-            self._course_index = 0
-            if str(course_select.value) != "0":
-                course_select.value = "0"
 
         self._syncing_controls = False
 

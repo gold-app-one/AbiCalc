@@ -143,12 +143,13 @@ class ExamsScreen(BaseAbiScreen):
         subject_select = self.query_one("#exams_subject_select", Select)
         subject_options = self._subject_options()
         option_signature = tuple(subject_options)
+        next_subject_name = selected_exam.subject.name
+        # Set value BEFORE set_options so Textual never resets to first item.
+        if str(subject_select.value) != next_subject_name:
+            subject_select.value = next_subject_name
         if option_signature != self._last_subject_option_signature:
             subject_select.set_options(subject_options)
             self._last_subject_option_signature = option_signature
-        next_subject_name = selected_exam.subject.name
-        if str(subject_select.value) != next_subject_name:
-            subject_select.value = next_subject_name
 
         slot_input = self.query_one("#exams_slot_input", Input)
         subject_input = self.query_one("#exams_subject_input", Input)
@@ -195,25 +196,6 @@ class ExamsScreen(BaseAbiScreen):
         self._selected_exam_index = parsed
         self._message_key = None
         self._sync_view()
-
-    @on(Select.Changed, "#exams_subject_select")
-    def _on_subject_select_changed(self, event: Select.Changed) -> None:
-        if self._syncing_controls:
-            return
-        lookup = self._subject_lookup()
-        selected_subject = lookup.get(str(event.value))
-        if selected_subject is None:
-            return
-        self._set_subject_direct(selected_subject)
-
-    @on(Input.Changed, "#exams_subject_input")
-    def _on_subject_input_changed(self, event: Input.Changed) -> None:
-        if self._syncing_controls:
-            return
-        selected_subject = self._subject_from_number(event.value)
-        if selected_subject is None:
-            return
-        self._set_subject_direct(selected_subject)
 
     @on(Input.Changed, "#exams_grade_input")
     def _on_grade_input_changed(self, event: Input.Changed) -> None:
