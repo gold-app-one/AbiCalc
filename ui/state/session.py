@@ -93,8 +93,6 @@ class SessionModel:
                 all_subjects.append(value)
 
         blocked_names = {
-            subjects.SUB.name,
-            subjects.ENGLISH_Z.name,
         }
 
         by_name: dict[str, Subject] = {}
