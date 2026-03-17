@@ -84,6 +84,8 @@ class Points:
         if isinstance(other, (int, float)):
             return (self.value + self.possibleIncrease / 2) == float(other)
         return NotImplemented
+    def __hash__(self) -> int:
+        return hash(self.value + self.possibleIncrease / 2)
     def __lt__(self, other: float | int | Points | object) -> bool:
         """
         Vor.: eine andere Points oder eine Zahl als Float/Integer
@@ -127,6 +129,8 @@ class CourseType(Enum):
         if isinstance(other, CourseType):
             return self.value == other.value
         return NotImplemented
+    def __hash__(self) -> int:
+        return hash(self.value)
     def __lt__(self, other: "CourseType") -> bool:
         """
         Vor.: eine andere CourseType

@@ -24,6 +24,8 @@ class Subject:
         if isinstance(other, Subject):
             return self.name == other.name
         return self.__eq__(other)
+    def __hash__(self) -> int:
+        return hash(self.name)
     def __lt__(self, other: "Subject") -> bool:
         """
         Vor.: ein anderes Subject
