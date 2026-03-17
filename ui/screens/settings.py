@@ -68,14 +68,18 @@ class SettingsScreen(BaseAbiScreen):
 
         config = cast(SettingsAppContext, self.app_ctx).config_manager.config
         limit_select = self.query_one("#settings_limit_list", Select)
-        limit_select.set_options(
-            [
-                ("Top 5", "5"),
-                ("Top 10", "10"),
-                ("Top 20", "20"),
-            ]
-        )
-        limit_select.value = str(config.result_limit)
+        limit_options = [
+            ("Top 5", "5"),
+            ("Top 10", "10"),
+            ("Top 20", "20"),
+        ]
+        limit_select.set_options(limit_options)
+        valid_limits = {value for _, value in limit_options}
+        next_limit = str(config.result_limit)
+        if next_limit not in valid_limits:
+            next_limit = "10"
+        if str(limit_select.value) != next_limit:
+            limit_select.value = next_limit
         self._sync_view()
 
     def compose_body(self) -> ComposeResult:

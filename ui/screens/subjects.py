@@ -54,14 +54,26 @@ class SubjectsScreen(BaseAbiScreen):
         lk2_select = self.query_one("#subjects_lk2_select", Select)
         subject_options = self._subject_options()
         option_signature = tuple(subject_options)
+        old_subject_values = {value for _, value in self._last_subject_option_signature}
+        valid_subject_values = {value for _, value in subject_options}
+        if not valid_subject_values:
+            self._syncing_controls = False
+            return
+
+        lk1_target = lk1_name if lk1_name in valid_subject_values else subject_options[0][1]
+        lk2_target = lk2_name if lk2_name in valid_subject_values else subject_options[0][1]
         if option_signature != self._last_subject_option_signature:
+            if lk1_target in old_subject_values and str(lk1_select.value) != lk1_target:
+                lk1_select.value = lk1_target
+            if lk2_target in old_subject_values and str(lk2_select.value) != lk2_target:
+                lk2_select.value = lk2_target
             lk1_select.set_options(subject_options)
             lk2_select.set_options(subject_options)
             self._last_subject_option_signature = option_signature
-        if str(lk1_select.value) != lk1_name:
-            lk1_select.value = lk1_name
-        if str(lk2_select.value) != lk2_name:
-            lk2_select.value = lk2_name
+        if str(lk1_select.value) != lk1_target:
+            lk1_select.value = lk1_target
+        if str(lk2_select.value) != lk2_target:
+            lk2_select.value = lk2_target
         self._syncing_controls = False
 
     def compose_body(self) -> ComposeResult:

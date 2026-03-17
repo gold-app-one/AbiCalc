@@ -66,14 +66,18 @@ class ProfilesScreen(BaseAbiScreen):
         app_ctx = cast(ProfilesAppContext, self.app_ctx)
         active = app_ctx.session.active_profile
         profile_select = cast(Select[str], self.query_one("#profiles_selection", Select))
-        profile_select.set_options(
-            [
-                (self.t("profiles.option").format(profile=1), "1"),
-                (self.t("profiles.option").format(profile=2), "2"),
-                (self.t("profiles.option").format(profile=3), "3"),
-            ]
-        )
-        profile_select.value = str(active)
+        profile_options = [
+            (self.t("profiles.option").format(profile=1), "1"),
+            (self.t("profiles.option").format(profile=2), "2"),
+            (self.t("profiles.option").format(profile=3), "3"),
+        ]
+        profile_select.set_options(profile_options)
+        valid_profiles = {value for _, value in profile_options}
+        selected_profile = str(active)
+        if selected_profile not in valid_profiles:
+            selected_profile = "1"
+        if str(profile_select.value) != selected_profile:
+            profile_select.value = selected_profile
 
         self.query_one("#profiles_switch", Button).label = self.t("profiles.switch")
         self.query_one("#profiles_save", Button).label = self.t("profiles.save_current")

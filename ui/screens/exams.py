@@ -143,13 +143,21 @@ class ExamsScreen(BaseAbiScreen):
         subject_select = self.query_one("#exams_subject_select", Select)
         subject_options = self._subject_options()
         option_signature = tuple(subject_options)
-        next_subject_name = selected_exam.subject.name
-        # Set value BEFORE set_options so Textual never resets to first item.
-        if str(subject_select.value) != next_subject_name:
-            subject_select.value = next_subject_name
+        old_subject_values = {value for _, value in self._last_subject_option_signature}
+        valid_subject_values = {value for _, value in subject_options}
+        if valid_subject_values:
+            next_subject_name = selected_exam.subject.name
+            subject_target = next_subject_name if next_subject_name in valid_subject_values else subject_options[0][1]
+        else:
+            subject_target = ""
+
         if option_signature != self._last_subject_option_signature:
+            if subject_target and subject_target in old_subject_values and str(subject_select.value) != subject_target:
+                subject_select.value = subject_target
             subject_select.set_options(subject_options)
             self._last_subject_option_signature = option_signature
+        if subject_target and str(subject_select.value) != subject_target:
+            subject_select.value = subject_target
 
         slot_input = self.query_one("#exams_slot_input", Input)
         subject_input = self.query_one("#exams_subject_input", Input)

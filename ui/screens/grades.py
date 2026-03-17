@@ -77,6 +77,7 @@ class GradesScreen(BaseAbiScreen):
         rendered_options = options if options else [("-", "0")]
         option_signature = tuple(rendered_options)
         course_select = self.query_one("#grades_course_select", Select)
+        old_course_values = {value for _, value in self._last_course_option_signature}
 
         # Compute target value and set it BEFORE set_options so Textual never
         # sees an out-of-bounds value and resets to the first item, which would
@@ -87,21 +88,34 @@ class GradesScreen(BaseAbiScreen):
         else:
             self._course_index = 0
             course_value = "0"
+
+        if option_signature != self._last_course_option_signature:
+            # If target value already exists in old options, set it before replacing
+            # options (helps when the new list shrinks). Otherwise replace options
+            # first and then set the target (helps when the new list grows).
+            if course_value in old_course_values and str(course_select.value) != course_value:
+                course_select.value = course_value
+            course_select.set_options(rendered_options)
+            self._last_course_option_signature = option_signature
         if str(course_select.value) != course_value:
             course_select.value = course_value
 
-        if option_signature != self._last_course_option_signature:
-            course_select.set_options(rendered_options)
-            self._last_course_option_signature = option_signature
-
         add_subject_select = self.query_one("#grades_add_subject_select", Select)
         add_subject_options = self._add_subject_options()
-        add_subject_signature = tuple(add_subject_options)
+        rendered_add_subject_options = add_subject_options if add_subject_options else [("-", "")]
+        add_subject_signature = tuple(rendered_add_subject_options)
+        old_add_subject_values = {value for _, value in self._last_add_subject_signature}
+        add_subject_value = str(add_subject_select.value)
+        valid_add_subject_values = {value for _, value in rendered_add_subject_options}
+        if add_subject_value not in valid_add_subject_values:
+            add_subject_value = rendered_add_subject_options[0][1]
         if add_subject_signature != self._last_add_subject_signature:
-            add_subject_select.set_options(add_subject_options)
+            if add_subject_value in old_add_subject_values and str(add_subject_select.value) != add_subject_value:
+                add_subject_select.value = add_subject_value
+            add_subject_select.set_options(rendered_add_subject_options)
             self._last_add_subject_signature = add_subject_signature
-            if add_subject_options:
-                add_subject_select.value = add_subject_options[0][1]
+        if str(add_subject_select.value) != add_subject_value:
+            add_subject_select.value = add_subject_value
 
         self._syncing_controls = False
 
