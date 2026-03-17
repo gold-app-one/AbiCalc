@@ -144,23 +144,21 @@ class SettingsScreen(BaseAbiScreen):
 
         button_id = event.button.id
         if button_id == "settings_theme_light":
-            manager.set_theme("classic-light")
             app_ctx.apply_theme("classic-light")
-            self._save()
+            self._set_message_key("settings.saved")
+            self._sync_view()
         elif button_id == "settings_theme_dark":
-            manager.set_theme("classic-dark")
             app_ctx.apply_theme("classic-dark")
-            self._save()
+            self._set_message_key("settings.saved")
+            self._sync_view()
         elif button_id == "settings_lang_de":
-            manager.set_language("de")
             app_ctx.apply_language("de")
+            self._set_message_key("settings.saved")
             self.refresh_labels()
-            self._save()
         elif button_id == "settings_lang_en":
-            manager.set_language("en")
             app_ctx.apply_language("en")
+            self._set_message_key("settings.saved")
             self.refresh_labels()
-            self._save()
         elif button_id == "settings_apply_limit":
             selected_limit = self.query_one("#settings_limit_list", Select).value
             if selected_limit is not Select.BLANK:

@@ -109,6 +109,8 @@ class MainApp(App[None]):
         Eff.: -
         Erg.: lädt das angegebene Theme und aktualisiert die CSS-Styles der Anwendung entsprechend
         """
+        self.config_manager.set_theme(theme_name)
+        self.config_manager.save()
         self.theme_manager.load(theme_name)
         self._write_generated_css()
         self._refresh_runtime_styles()
@@ -119,6 +121,8 @@ class MainApp(App[None]):
         Eff.: -
         Erg.: aktualisiert die Sprache der Anwendung entsprechend und refreshes die Labels aller Views
         """
+        self.config_manager.set_language(language)
+        self.config_manager.save()
         self.i18n.set_language(language)
         self.sub_title = ""
         self._refresh_translated_views()
@@ -153,6 +157,8 @@ class MainApp(App[None]):
         loaded = self.session.load_profile(profile)
         if not loaded:
             self.session.reset_for_profile(profile)
+            # Ensure a new profile slot is materialized on disk immediately.
+            self.session.save_profile(self.session.active_profile)
 
         self._refresh_translated_views()
         return loaded
