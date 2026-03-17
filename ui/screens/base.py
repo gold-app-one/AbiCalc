@@ -35,6 +35,11 @@ class BaseAbiScreen(Screen[None]):
     def on_show(self) -> None:
         self.refresh_labels()
 
+    def on_resume(self) -> None:
+        # When a pushed screen is closed, the previous screen resumes.
+        # Refresh labels so the topbar profile number reflects current state.
+        self.refresh_labels()
+
     def compose_body(self) -> ComposeResult:
         raise NotImplementedError()
 
