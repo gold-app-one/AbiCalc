@@ -4,8 +4,7 @@ from typing import Protocol, cast
 
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Horizontal
-from textual.widgets import Button, Input, Select, Static
+from textual.widgets import Button, Select, Static
 
 from subjects import Subject
 
@@ -43,35 +42,13 @@ class SubjectsScreen(BaseAbiScreen):
         pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
         return {subject.name: subject for subject in pool}
 
-    def _subject_from_number(self, raw_number: str):
-        text = raw_number.strip()
-        if not text:
-            return None
-        try:
-            idx = int(text) - 1
-        except ValueError:
-            return None
-        pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
-        if idx < 0 or idx >= len(pool):
-            return None
-        return pool[idx]
-
     def _sync_view(self) -> None:
         self.query_one("#subjects_state", AbiCard).update(self._build_state_text())
         self.query_one("#subjects_message", Static).update(self._message)
 
         self._syncing_controls = True
-        pool = cast(SubjectsAppContext, self.app_ctx).session.get_lk_subject_pool()
         lk1_name = cast(SubjectsAppContext, self.app_ctx).session.get_lk(1).name
         lk2_name = cast(SubjectsAppContext, self.app_ctx).session.get_lk(2).name
-
-        lk1_index = 0
-        lk2_index = 0
-        for idx, subject in enumerate(pool):
-            if subject.name == lk1_name:
-                lk1_index = idx
-            if subject.name == lk2_name:
-                lk2_index = idx
 
         lk1_select = self.query_one("#subjects_lk1_select", Select)
         lk2_select = self.query_one("#subjects_lk2_select", Select)
@@ -85,15 +62,6 @@ class SubjectsScreen(BaseAbiScreen):
             lk1_select.value = lk1_name
         if str(lk2_select.value) != lk2_name:
             lk2_select.value = lk2_name
-
-        lk1_input = self.query_one("#subjects_lk1_number", Input)
-        lk2_input = self.query_one("#subjects_lk2_number", Input)
-        lk1_text = str(lk1_index + 1)
-        lk2_text = str(lk2_index + 1)
-        if lk1_input.value != lk1_text:
-            lk1_input.value = lk1_text
-        if lk2_input.value != lk2_text:
-            lk2_input.value = lk2_text
         self._syncing_controls = False
 
     def compose_body(self) -> ComposeResult:
@@ -108,23 +76,8 @@ class SubjectsScreen(BaseAbiScreen):
 
         yield AbiCard(self.t("subjects.hint"), id="subjects_hint", classes="abi-subtitle")
 
-        with Horizontal(classes="abi-row"):
-            yield Select[str](options, value=lk1_name, allow_blank=False, id="subjects_lk1_select", classes="abi-row-field")
-            yield Input(
-                placeholder=self.t("subjects.number_placeholder"),
-                id="subjects_lk1_number",
-                restrict=r"[0-9]*",
-                classes="abi-row-field",
-            )
-
-        with Horizontal(classes="abi-row"):
-            yield Select[str](options, value=lk2_name, allow_blank=False, id="subjects_lk2_select", classes="abi-row-field")
-            yield Input(
-                placeholder=self.t("subjects.number_placeholder"),
-                id="subjects_lk2_number",
-                restrict=r"[0-9]*",
-                classes="abi-row-field",
-            )
+        yield Select[str](options, value=lk1_name, allow_blank=False, id="subjects_lk1_select", classes="abi-row-field")
+        yield Select[str](options, value=lk2_name, allow_blank=False, id="subjects_lk2_select", classes="abi-row-field")
 
         yield Button(self.t("subjects.apply"), id="subjects_apply", classes="abi-menu-button")
 
@@ -133,8 +86,6 @@ class SubjectsScreen(BaseAbiScreen):
         yield self.factory.action_button("screen.back", "subjects_back")
 
     def on_mount(self) -> None:
-        self.query_one("#subjects_lk1_number", Input).cursor_blink = False
-        self.query_one("#subjects_lk2_number", Input).cursor_blink = False
         self._sync_view()
 
     def refresh_labels(self) -> None:
@@ -142,8 +93,6 @@ class SubjectsScreen(BaseAbiScreen):
         self.query_one("#subjects_title", AbiTitle).update(self.t("subjects.title"))
         self.query_one("#subjects_hint", AbiCard).update(self.t("subjects.hint"))
         self.query_one("#subjects_apply", Button).label = self.t("subjects.apply")
-        self.query_one("#subjects_lk1_number", Input).placeholder = self.t("subjects.number_placeholder")
-        self.query_one("#subjects_lk2_number", Input).placeholder = self.t("subjects.number_placeholder")
         self.query_one("#subjects_back", Button).label = self.t("screen.back")
 
         self._sync_view()
@@ -158,13 +107,6 @@ class SubjectsScreen(BaseAbiScreen):
             lk2_name = str(self.query_one("#subjects_lk2_select", Select).value)
             lk1 = lookup.get(lk1_name)
             lk2 = lookup.get(lk2_name)
-
-            lk1_from_number = self._subject_from_number(self.query_one("#subjects_lk1_number", Input).value)
-            lk2_from_number = self._subject_from_number(self.query_one("#subjects_lk2_number", Input).value)
-            if lk1_from_number is not None:
-                lk1 = lk1_from_number
-            if lk2_from_number is not None:
-                lk2 = lk2_from_number
 
             if lk1 is None or lk2 is None or lk1 == lk2:
                 self._message = self.t("subjects.invalid_duplicate")
