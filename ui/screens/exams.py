@@ -176,6 +176,9 @@ class ExamsScreen(BaseAbiScreen):
     def _on_slot_select_changed(self, event: Select.Changed) -> None:
         if self._syncing_controls:
             return
+        current_value = str(self.query_one("#exams_slot_select", Select).value)
+        if str(event.value) != current_value:
+            return
         try:
             parsed = int(str(event.value))
         except ValueError:

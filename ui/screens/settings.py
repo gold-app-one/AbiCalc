@@ -124,6 +124,9 @@ class SettingsScreen(BaseAbiScreen):
 
     @on(Select.Changed, "#settings_limit_list")
     def _on_limit_select_changed(self, event: Select.Changed) -> None:
+        current_value = str(self.query_one("#settings_limit_list", Select).value)
+        if str(event.value) != current_value:
+            return
         app_ctx = cast(SettingsAppContext, self.app_ctx)
         manager = app_ctx.config_manager
         selected_limit = event.value

@@ -123,6 +123,10 @@ class GradesScreen(BaseAbiScreen):
     def _on_semester_select_changed(self, event: Select.Changed) -> None:
         if self._syncing_controls:
             return
+        # Ignore stale queued events that no longer match widget state.
+        current_value = str(self.query_one("#grades_semester_select", Select).value)
+        if str(event.value) != current_value:
+            return
         try:
             semester = int(str(event.value))
         except ValueError:
@@ -137,6 +141,10 @@ class GradesScreen(BaseAbiScreen):
     @on(Select.Changed, "#grades_course_select")
     def _on_course_select_changed(self, event: Select.Changed) -> None:
         if self._syncing_controls:
+            return
+        # Ignore stale queued events that no longer match widget state.
+        current_value = str(self.query_one("#grades_course_select", Select).value)
+        if str(event.value) != current_value:
             return
 
         courses = cast(GradesAppContext, self.app_ctx).session.get_q(self._semester)
