@@ -117,13 +117,11 @@ class SessionModel:
         if subject == self._save_state.getLK(other_index):
             return False
 
-        old_subject = self._save_state.getLK(lk_index)
         self._save_state.setLK(lk_index, subject)
 
-        for semester in (1, 2, 3, 4):
-            for course in self._save_state.getQ(semester):
-                if course.type == CourseType.LK and course.subject == old_subject:
-                    course.subject = subject
+        # LK/GK types are derived from the two configured LK subjects.
+        # If LK1/LK2 change, all existing courses must be reclassified.
+        self._sync_course_types_with_lks()
 
         finals = self._save_state.getFinals()
         if lk_index == 1:
@@ -132,6 +130,18 @@ class SessionModel:
             finals.LK2.subject = subject
 
         return True
+
+    def _course_type_for_subject(self, subject: Subject) -> CourseType:
+        lk1 = self._save_state.getLK(1)
+        lk2 = self._save_state.getLK(2)
+        return CourseType.LK if subject == lk1 or subject == lk2 else CourseType.GK
+
+    def _sync_course_types_with_lks(self) -> None:
+        for semester in (1, 2, 3, 4):
+            for course in self._save_state.getQ(semester):
+                target_type = self._course_type_for_subject(course.subject)
+                if course.type != target_type:
+                    course.type = target_type
 
     def cycle_lk(self, n: int, direction: int) -> bool:
         """
@@ -231,13 +241,12 @@ class SessionModel:
         sem = max(1, min(4, int(semester)))
         courses = self.get_q(sem)
         new_grade = Points(10) if sem in (1, 2) else UNKNOWN
+        new_type = self._course_type_for_subject(subject)
 
         if courses:
-            ref_idx = 0 if reference_index is None else max(0, min(len(courses) - 1, int(reference_index)))
-            ref_course = courses[ref_idx]
-            new_course = Course(subject, new_grade, ref_course.type, sem)
+            new_course = Course(subject, new_grade, new_type, sem)
         else:
-            new_course = Course(subject, new_grade, CourseType.GK, sem)
+            new_course = Course(subject, new_grade, new_type, sem)
 
         courses.append(new_course)
         return len(courses) - 1
@@ -556,5 +565,6 @@ class SessionModel:
                         new_state.Q4 = parsed_courses
 
         self._save_state = new_state
+        self._sync_course_types_with_lks()
         self._active_profile = slot
         return True
